@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" 
+      th:replace="~{layout :: page(~{::title}, 'compensation', ~{::th:block#extra-head}, ~{::.main-content}, ~{::th:block#extra-scripts})}">
+<head>
+    <title>Compensation Masterlist | HR Panel</title>
+    
+    <th:block id="extra-head">
+        <style>
+            .comp-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+            .comp-title { font-size: 24px; color: #111; font-weight: 800; border-left: 5px solid #d32f2f; padding-left: 10px; }
+            
+            .search-box { width: 100%; max-width: 400px; padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 14px; }
+            
+            /* Tabs Styling identical to Payroll Register */
+            .attendance-toggle-container { display: flex; align-items: center; margin-top: 15px; border-bottom: 2px solid #ddd; padding-bottom: 0; margin-bottom: 20px; }
+            .btn-tab { padding: 12px 20px; border: none; background: none; font-weight: 600; font-size: 14px; cursor: pointer; transition: 0.3s; color: #666; margin-right: 5px; border-bottom: 3px solid transparent; }
+            .btn-tab:hover { color: #d32f2f; }
+            .active-tab { color: #d32f2f; border-bottom: 3px solid #d32f2f; }
+            .inactive-tab { color: #888; }
+            
+            .comp-table-container { background: #fff; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow-x: auto; }
+            .comp-table { width: 100%; border-collapse: collapse; text-align: left; }
+            .comp-table th { background-color: #111; color: #fff; padding: 15px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
+            .comp-table td { padding: 15px; border-bottom: 1px solid #eee; font-size: 14px; color: #333; vertical-align: middle; }
+            .comp-table tr:hover td { background-color: #fafafa; }
+            
+            .status-badge { padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: bold; }
+            .status-ft { background-color: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
+            .status-pt { background-color: #e3f2fd; color: #0277bd; border: 1px solid #b3e5fc; }
+            
+            .btn-edit { background-color: #d32f2f; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: 600; transition: 0.2s; white-space: nowrap; }
+            .btn-edit:hover { background-color: #b71c1c; }
+            
+            .val-money { font-weight: 600; color: #111; float: right; }
+            .list-item { font-size: 12px; color: #555; display: flex; justify-content: space-between; border-bottom: 1px dashed #eee; padding: 3px 0; }
+            .list-item:last-child { border-bottom: none; }
+
+            /* Modal Styling */
+            .comp-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; }
+            .comp-modal-content { background: #fff; width: 90%; max-width: 700px; border-radius: 8px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.3); animation: slideDown 0.3s ease; }
+            @keyframes slideDown { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+            
+            .mod-head { background: #d32f2f; color: #fff; padding: 20px; display: flex; justify-content: space-between; align-items: center; }
+            .mod-head h3 { margin: 0; font-size: 18px; }
+            .close-mod { color: #fff; font-size: 24px; cursor: pointer; background: none; border: none; }
+            
+            .mod-body { padding: 25px; max-height: 70vh; overflow-y: auto; }
+            .grid-form { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+            .form-grp { display: flex; flex-direction: column; }
+            .form-grp label { font-size: 12px; font-weight: 600; color: #555; margin-bottom: 5px; }
+            .form-grp input { padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
+            .form-grp input:focus { border-color: #d32f2f; outline: none; }
+            
+            .mod-footer { padding: 20px 25px; background: #f9f9f9; text-align: right; border-top: 1px solid #eee; }
+            .btn-save { background: #111; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: 600; transition: 0.2s; }
+            .btn-save:hover { background: #d32f2f; }
+        </style>
+    </th:block>
+</head>
+<body>
+
+    <div class="main-content">
+        <div class="comp-header">
+            <h2 class="comp-title">Compensation Masterlist</h2>
+            <input type="text" id="searchInput" class="search-box" placeholder="Search employee by Name or ID..." onkeyup="filterEmployees()">
+        </div>
+        
+        <div class="attendance-toggle-container">
+            <button type="button" class="btn-tab active-tab" id="btnTabAll" onclick="switchCompTab('ALL')">
+                <i class="fas fa-users"></i> All Employees
+            </button>
+            <button type="button" class="btn-tab inactive-tab" id="btnTabFaculty" onclick="switchCompTab('FACULTY')">
+                <i class="fas fa-chalkboard-teacher"></i> Faculty
+            </button>
+            <button type="button" class="btn-tab inactive-tab" id="btnTabNonFaculty" onclick="switchCompTab('NON-FACULTY')">
+                <i class="fas fa-user-tie"></i> Non-Faculty
+            </button>
+        </div>
+
+<div class="comp-table-container">
+    <table class="comp-table" id="empTable">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Emp No</th> <th>Employee Info</th>
+                <th style="min-width: 150px;">Base Rates</th>
+                <th style="min-width: 200px; color: #f39c12;">Taxable Allowances</th>
+                <th style="min-width: 200px; color: #27ae60;">Non-Taxable Allowances</th>
+                <th style="text-align: center;">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="emp : ${employees}" class="emp-row" 
+                th:attr="data-emp-type=${(emp.department != null and #strings.containsIgnoreCase(emp.department.departmentName, 'School')) ? 'FACULTY' : 'NON-FACULTY'}">
+                
+                <td th:text="${emp.id}">1</td>
+                <td style="font-weight: 800; color: #b71c1c;" th:text="${emp.employeeId}">1-00000</td> <td>
+                    <div style="font-weight: 800; color: #111; font-size: 15px;" th:text="${emp.firstName + ' ' + emp.lastName}">John Doe</div>
+                    <div style="margin-top: 5px;">
+                        <span style="font-size: 11px; color: #666; font-weight: 600;">Employee_Status: </span>
+                        <span th:class="${#strings.containsIgnoreCase(emp.employeeStatus ?: '', 'Part')} ? 'status-badge status-pt' : 'status-badge status-ft'" 
+                              th:text="${emp.employeeStatus ?: 'Unknown'}">Account_Status</span>
+                    </div>
+                    <div style="margin-top: 5px;">
+                        <span style="font-size: 11px; color: #666; font-weight: 600;">Status: </span>
+                        <span th:text="${emp.accountStatus}" 
+                              th:style="${emp.accountStatus == 'Active' ? 'color: #2e7d32; font-weight: bold;' : 'color: #d32f2f; font-weight: bold;'}">Active</span>
+                    </div>
+                </td>
+                
+                <td>
+                    <div class="list-item"><span>Basic (Mo):</span> <span class="val-money" th:text="${'₱' + #numbers.formatDecimal(emp.basicSalary ?: 0, 1, 'COMMA', 2, 'POINT')}">₱0.00</span></div>
+                    <div class="list-item"><span>Hourly Rate:</span> <span class="val-money" th:text="${'₱' + #numbers.formatDecimal(emp.hourlyRate ?: 0, 1, 'COMMA', 2, 'POINT')}">₱0.00</span></div>
+                </td>
+                
+                <td>
+                    <div class="list-item"><span>Admin Pay:</span> <span class="val-money" th:text="${'₱' + #numbers.formatDecimal(emp.adminPay ?: 0, 1, 'COMMA', 2, 'POINT')}"></span></div>
+                    <div class="list-item"><span>Honorarium:</span> <span class="val-money" th:text="${'₱' + #numbers.formatDecimal(emp.honorarium ?: 0, 1, 'COMMA', 2, 'POINT')}"></span></div>
+                    <div class="list-item"><span>Allowance:</span> <span class="val-money" th:text="${'₱' + #numbers.formatDecimal(emp.allowance ?: 0, 1, 'COMMA', 2, 'POINT')}"></span></div>
+                    <div class="list-item"><span>Relocation:</span> <span class="val-money" th:text="${'₱' + #numbers.formatDecimal(emp.relocationPay ?: 0, 1, 'COMMA', 2, 'POINT')}"></span></div>
+                </td>
+                
+                <td>
+                    <div class="list-item"><span>De Minimis:</span> <span class="val-money" th:text="${'₱' + #numbers.formatDecimal(emp.deMinimis ?: 0, 1, 'COMMA', 2, 'POINT')}"></span></div>
+                    <div class="list-item"><span>Longevity:</span> <span class="val-money" th:text="${'₱' + #numbers.formatDecimal(emp.longevity ?: 0, 1, 'COMMA', 2, 'POINT')}"></span></div>
+                    <div class="list-item"><span>Cash Gift:</span> <span class="val-money" th:text="${'₱' + #numbers.formatDecimal(emp.cashGift ?: 0, 1, 'COMMA', 2, 'POINT')}"></span></div>
+                    <div class="list-item"><span>Incentive:</span> <span class="val-money" th:text="${'₱' + #numbers.formatDecimal(emp.incentive ?: 0, 1, 'COMMA', 2, 'POINT')}"></span></div>
+                </td>
+                
+                <td style="text-align: center;">
+                    <button class="btn-edit" 
+                            th:attr="data-id=${emp.id}, data-empid=${emp.employeeId}, data-name=${emp.firstName + ' ' + emp.lastName}, 
+                                     data-basic=${emp.basicSalary}, data-hourly=${emp.hourlyRate}, 
+                                     data-admin=${emp.adminPay}, data-allowance=${emp.allowance}, 
+                                     data-hon=${emp.honorarium}, data-relocation=${emp.relocationPay},
+                                     data-demin=${emp.deMinimis}, data-long=${emp.longevity}, 
+                                     data-cash=${emp.cashGift}, data-inc=${emp.incentive}"
+                            onclick="openEditModal(this)">
+                        <i class="fas fa-edit"></i> Edit Records
+                    </button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+        <div id="editCompModal" class="comp-modal">
+            <div class="comp-modal-content">
+                <div class="mod-head">
+                    <h3 id="modEmpName">Edit Compensation</h3>
+                    <button class="close-mod" onclick="closeEditModal()">&times;</button>
+                </div>
+                <div class="mod-body">
+                    <input type="hidden" id="editEmpId">
+                    
+                    <div style="background: #f1f1f1; border-left: 4px solid #111; padding: 10px; margin-bottom: 20px; font-size: 13px; color: #444;">
+                        <strong>Accounting Note:</strong> Updates instantly save to the database and will apply to the very next generated payroll.
+                    </div>
+
+                    <div class="grid-form">
+                        <h4 style="grid-column: 1 / -1; margin: 0; color: #111; font-size: 15px; border-bottom: 2px solid #ddd; padding-bottom: 5px;"><i class="fas fa-money-bill-wave"></i> Base Rates</h4>
+                        <div class="form-grp"><label>Basic Salary (Monthly) ₱</label><input type="number" step="0.01" id="editBasic"></div>
+                        <div class="form-grp"><label>Hourly Rate ₱</label><input type="number" step="0.01" id="editHourly"></div>
+
+                        <h4 style="grid-column: 1 / -1; margin: 10px 0 0; color: #f39c12; font-size: 15px; border-bottom: 2px solid #ddd; padding-bottom: 5px;"><i class="fas fa-exclamation-triangle"></i> Taxable Fixed Allowances</h4>
+                        <div class="form-grp"><label>Admin Pay / Title Allowance ₱</label><input type="number" step="0.01" id="editAdmin"></div>
+                        <div class="form-grp"><label>Honorarium ₱</label><input type="number" step="0.01" id="editHon"></div>
+                        <div class="form-grp"><label>Standard Allowance ₱</label><input type="number" step="0.01" id="editAllowance"></div>
+                        <div class="form-grp"><label>Relocation Pay ₱</label><input type="number" step="0.01" id="editRelocation"></div>
+
+                        <h4 style="grid-column: 1 / -1; margin: 10px 0 0; color: #27ae60; font-size: 15px; border-bottom: 2px solid #ddd; padding-bottom: 5px;"><i class="fas fa-shield-alt"></i> Non-Taxable Fixed Allowances</h4>
+                        <div class="form-grp"><label>De Minimis ₱</label><input type="number" step="0.01" id="editDemin"></div>
+                        <div class="form-grp"><label>Longevity Pay ₱</label><input type="number" step="0.01" id="editLong"></div>
+                        <div class="form-grp"><label>Cash Gift ₱</label><input type="number" step="0.01" id="editCashGift"></div>
+                        <div class="form-grp"><label>Incentive ₱</label><input type="number" step="0.01" id="editIncentive"></div>
+                    </div>
+                </div>
+                <div class="mod-footer">
+                    <button class="btn-save" id="btnSaveComp" onclick="saveCompensation()">
+                        <i class="fas fa-save"></i> Save Updates to Database
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <th:block id="extra-scripts">
+        <script>
+            let currentTab = 'ALL';
+            
+            function switchCompTab(tab) {
+                currentTab = tab;
+                document.getElementById('btnTabAll').className = tab === 'ALL' ? 'btn-tab active-tab' : 'btn-tab inactive-tab';
+                document.getElementById('btnTabFaculty').className = tab === 'FACULTY' ? 'btn-tab active-tab' : 'btn-tab inactive-tab';
+                document.getElementById('btnTabNonFaculty').className = tab === 'NON-FACULTY' ? 'btn-tab active-tab' : 'btn-tab inactive-tab';
+                filterEmployees();
+            }
+        
+            function filterEmployees() {
+                const query = document.getElementById('searchInput').value.toLowerCase();
+                const rows = document.querySelectorAll('.emp-row');
+                
+                rows.forEach(row => {
+                    const text = row.innerText.toLowerCase();
+                    const empType = row.getAttribute('data-emp-type');
+                    
+                    const matchesSearch = text.includes(query);
+                    const matchesTab = currentTab === 'ALL' || currentTab === empType;
+
+                    row.style.display = (matchesSearch && matchesTab) ? '' : 'none';
+                });
+            }
+
+            function openEditModal(btn) {
+                document.getElementById('editEmpId').value = btn.getAttribute('data-id');
+                document.getElementById('modEmpName').innerText = "Edit Profile: " + btn.getAttribute('data-name');
+                
+                const setVal = (id, val) => document.getElementById(id).value = (val && val !== 'null') ? val : '';
+                
+                setVal('editBasic', btn.getAttribute('data-basic'));
+                setVal('editHourly', btn.getAttribute('data-hourly'));
+                
+                setVal('editAdmin', btn.getAttribute('data-admin'));
+                setVal('editHon', btn.getAttribute('data-hon'));
+                setVal('editAllowance', btn.getAttribute('data-allowance'));
+                setVal('editRelocation', btn.getAttribute('data-relocation'));
+                
+                setVal('editDemin', btn.getAttribute('data-demin'));
+                setVal('editLong', btn.getAttribute('data-long'));
+                setVal('editCashGift', btn.getAttribute('data-cash'));
+                setVal('editIncentive', btn.getAttribute('data-inc'));
+                
+                document.getElementById('editCompModal').style.display = 'flex';
+            }
+
+            function closeEditModal() {
+                document.getElementById('editCompModal').style.display = 'none';
+            }
+
+            async function saveCompensation() {
+                const btn = document.getElementById('btnSaveComp');
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving to Database...';
+                btn.disabled = true;
+
+                const params = new URLSearchParams();
+                params.append('id', document.getElementById('editEmpId').value);
+                
+                if(document.getElementById('editBasic').value) params.append('basicSalary', document.getElementById('editBasic').value);
+                if(document.getElementById('editHourly').value) params.append('hourlyRate', document.getElementById('editHourly').value);
+                
+                if(document.getElementById('editAdmin').value) params.append('adminPay', document.getElementById('editAdmin').value);
+                if(document.getElementById('editHon').value) params.append('honorarium', document.getElementById('editHon').value);
+                if(document.getElementById('editAllowance').value) params.append('allowance', document.getElementById('editAllowance').value);
+                if(document.getElementById('editRelocation').value) params.append('relocationPay', document.getElementById('editRelocation').value);
+                
+                if(document.getElementById('editDemin').value) params.append('deMinimis', document.getElementById('editDemin').value);
+                if(document.getElementById('editLong').value) params.append('longevity', document.getElementById('editLong').value);
+                if(document.getElementById('editCashGift').value) params.append('cashGift', document.getElementById('editCashGift').value);
+                if(document.getElementById('editIncentive').value) params.append('incentive', document.getElementById('editIncentive').value);
+
+                try {
+                    const response = await fetch('/payroll-system/api/employees/update-compensation', {
+                        method: 'POST',
+                        body: params
+                    });
+                    
+                    if (!response.ok) throw new Error("Failed to update database.");
+                    alert("Success! Compensation records have been permanently updated in the database.");
+                    location.reload(); 
+                } catch (error) {
+                    alert(error.message);
+                } finally {
+                    btn.innerHTML = '<i class="fas fa-save"></i> Save Updates to Database';
+                    btn.disabled = false;
+                }
+            }
+
+            // Close modal when clicking outside
+            window.onclick = function(event) {
+                const modal = document.getElementById('editCompModal');
+                if (event.target === modal) {
+                    closeEditModal();
+                }
+            }
+        </script>
+    </th:block>
+</body>
+</html>

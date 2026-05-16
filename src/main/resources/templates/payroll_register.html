@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" 
+      th:replace="~{layout :: page(~{::title}, 'payroll_register', ~{::th:block#extra-head}, ~{::.main-content}, ~{::th:block#extra-scripts})}">
+<head>
+    <title>Master Payroll Register | HR Panel</title>
+    
+    <th:block id="extra-head">
+        <meta name="context-path" th:content="@{/}" />
+        
+        <link rel="stylesheet" th:href="@{/css/style_payroll.css}"> 
+        <link rel="stylesheet" th:href="@{/css/payroll_register.css}"> 
+    </th:block>
+</head>
+<body>
+
+<div class="main-content">
+        <div class="page-header" style="margin-bottom: 25px;"> 
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h2 style="font-size: 24px;">Department Payroll Register</h2>
+                
+                <div>
+                    <button class="btn-dark" style="background-color: #0f172a; color: white; padding: 10px 18px; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;" onclick="openGlobalAdjustmentModal()">
+                        <i class="fas fa-sliders-h"></i> Edit Adjustments
+                    </button>
+                </div>
+            </div>
+            
+            <div class="attendance-toggle-container" style="display: flex; align-items: center; margin-top: 20px; border-bottom: 2px solid #ddd; padding-bottom: 0;">
+                <button type="button" class="btn-tab active-tab" id="btnTabAll" onclick="switchPayrollTab('ALL')" style="padding: 10px 20px; font-size: 14px;">
+                    <i class="fas fa-users"></i> All Employees
+                </button>
+                <button type="button" class="btn-tab inactive-tab" id="btnTabFaculty" onclick="switchPayrollTab('FACULTY')" style="padding: 10px 20px; font-size: 14px;">
+                    <i class="fas fa-chalkboard-teacher"></i> Faculty
+                </button>
+                <button type="button" class="btn-tab inactive-tab" id="btnTabNonFaculty" onclick="switchPayrollTab('NON-FACULTY')" style="padding: 10px 20px; font-size: 14px;">
+                    <i class="fas fa-user-tie"></i> Non-Faculty
+                </button>
+            </div>
+        </div>
+
+
+       <div class="glass-card filters-panel" style="padding: 20px; margin-bottom: 25px; border-radius: 8px; display: grid; grid-template-columns: 1fr 1.3fr 0.8fr 0.8fr 3.2fr; gap: 15px; align-items: end;">
+            
+            <div class="filter-group" style="margin: 0;">
+                <label for="registerDepartment" style="margin-bottom: 6px; font-weight: 600; color: #475569; display: block; font-size: 13px;">Department</label>
+                <select id="registerDepartment" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #cbd5e1; box-sizing: border-box; font-size: 13px;">
+                    <option value="ALL">All Departments</option>
+                    <option value="School of Arts and Sciences">School of Arts and Sciences</option>
+                    <option value="School of Business Administration">School of Business Administration</option>
+                    <option value="School of Dentistry">School of Dentistry</option>
+                    <option value="School of Education">School of Education</option>
+                    <option value="School of Engineering and Technology">School of Engineering and Technology</option>
+                    <option value="School of Medical Technology">School of Medical Technology</option>
+                    <option value="School of Medicine">School of Medicine</option>
+                    <option value="School of Midwifery">School of Midwifery</option>
+                    <option value="School of Nursing">School of Nursing</option>
+                    <option value="School of Pharmacy">School of Pharmacy</option>
+                    <option value="School of Physical Therapy">School of Physical Therapy</option>
+                    <option value="School of Radiologic Technology">School of Radiologic Technology</option>
+                </select>
+            </div>
+            
+            <div class="filter-group search-group" style="margin: 0;">
+                <label for="searchEmployee" style="margin-bottom: 6px; font-weight: 600; color: #475569; display: block; font-size: 13px;">Search Employee</label>
+                <div class="search-wrapper" style="width: 100%; position: relative;">
+                    <input type="text" id="searchEmployee" placeholder="Search by Name or ID..." style="width: 100%; padding: 10px; padding-right: 35px; border-radius: 5px; border: 1px solid #cbd5e1; box-sizing: border-box; font-size: 13px;">
+                    <button class="btn-search" title="Search" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #94a3b8; cursor: pointer;"><i class="fas fa-search"></i></button>
+                </div>
+            </div>
+            
+            <div class="filter-group date-input" style="margin: 0;">
+                <label for="startDateFilter" style="margin-bottom: 6px; font-weight: 600; color: #475569; display: block; font-size: 13px;">Cutoff Start</label>
+                <input type="date" id="startDateFilter" max="9999-12-31" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #cbd5e1; box-sizing: border-box; font-size: 13px;">
+            </div>
+            
+            <div class="filter-group date-input" style="margin: 0;">
+                <label for="endDateFilter" style="margin-bottom: 6px; font-weight: 600; color: #475569; display: block; font-size: 13px;">Cutoff End</label>
+                <input type="date" id="endDateFilter" max="9999-12-31" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #cbd5e1; box-sizing: border-box; font-size: 13px;">
+            </div>
+            
+           <div class="filter-group" style="margin: 0; display: flex; flex-direction: column; justify-content: flex-end; width: 100%;">
+                <label style="margin-bottom: 6px; font-weight: 600; color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">Batch Actions</label>
+                <div style="display: flex; gap: 10px; width: 100%;">
+                    
+                    <button id="btnEmailPayslips" onclick="sendPayslipEmails()" class="modern-action-btn btn-modern-blue" title="Email all visible employees in this filter">
+                        <i class="fas fa-paper-plane"></i> Email All
+                    </button>
+                    
+                    <button id="btnEmailSelected" onclick="sendSelectedPayslips()" class="modern-action-btn btn-modern-outline" title="Email only explicitly checked employees">
+                        <i class="fas fa-check-square"></i> Email Selected
+                    </button>
+                    
+                    <button id="btnExportPBCOM" onclick="exportPBCOM()" class="modern-action-btn btn-modern-green" title="Download Bank Export for PBCOM">
+                        <i class="fas fa-file-excel"></i> PBCOM EXPORT
+                    </button>
+<button id="generateReportBtn" class="modern-action-btn btn-modern-blue" title="Download General Payroll Report" style="background-color: #0284c7; color: white;">
+    <i class="fas fa-file-excel"></i> Generate Report
+</button>
+                </div>
+            </div>
+            
+        </div>
+        <div th:if="${#lists.isEmpty(groupedPayrolls)}" class="glass-card text-center empty-row-td">
+            No payroll records generated yet.
+        </div>
+
+        <div class="glass-card" style="padding: 0; border-radius: 6px; overflow: hidden; margin-bottom: 30px;">
+            <div class="table-responsive">
+                <table id="payrollLedgerTable" class="custom-table">
+    <thead>
+        <tr>
+            <th colspan="4" style="background: #fff;">EMPLOYEE INFO</th>
+            <th colspan="4" style="background: #e0f2fe; color: #0284c7;">EARNINGS</th>
+            <th rowspan="2" style="background: #bae6fd; color: #0369a1; vertical-align: bottom;">TOTAL EARN <i class="fas fa-hand-pointer"></i></th>
+            <th rowspan="2" style="background: #fed7aa; color: #ea580c; vertical-align: bottom;">PENALTIES <i class="fas fa-hand-pointer"></i></th>
+            <th rowspan="2" style="background: #bbf7d0; color: #047857; vertical-align: bottom;">GROSS PAY</th>
+            <th colspan="8" style="background: #ffe4e6; color: #e11d48;">DEDUCTIONS</th>
+            <th rowspan="2" style="background: #fecdd3; color: #be123c; vertical-align: bottom;">TOTAL DED <i class="fas fa-hand-pointer"></i></th>
+            <th rowspan="2" style="background: #d1fae5; color: #059669; vertical-align: bottom;">NET PAY</th>
+        </tr>
+        <tr>
+            <th style="width: 40px; text-align: center;">
+                <input type="checkbox" id="selectAllCheckbox" onclick="toggleSelectAll(this)" style="cursor: pointer;" title="Select All Visible">
+            </th>
+            <th class="text-left">ID</th>
+            <th class="text-left">Name</th>
+            <th>Basic</th>
+            
+            <th>Teach</th>
+            <th>OT</th>
+            <th>Adj (+)</th>
+            <th>Other Incomes <i class="fas fa-info-circle"></i></th>
+            
+            <th>SSS</th>
+            <th>PHIC</th>
+            <th>HDMF</th>
+            <th>S.Loan</th>
+            <th>H.Loan</th>
+            <th>O.Loan</th>
+            <th>WTAX</th>
+            <th>Lv(U)</th>
+        </tr>
+    </thead>
+                    
+                    <tbody th:each="deptGroup : ${groupedPayrolls}" class="dept-group-body" th:attr="data-department=${deptGroup.departmentName}">
+                        <tr class="dept-title-row">
+                            <td colspan="21" class="text-left">
+                                <input type="checkbox" class="dept-checkbox" onclick="toggleDeptSelect(this)" style="margin-right: 10px; cursor: pointer;" title="Select All in Department">
+                                <i class="fas fa-users" style="color:#0284c7; margin-right: 5px;"></i> [[${deptGroup.departmentName}]]
+                            </td>
+                        </tr>
+                        
+                        <tr class="dept-header-repeat">
+                            <th></th>
+                            <th class="text-left">ID</th> <th class="text-left">Name</th>
+                            <th>Basic</th> <th>Teach</th> <th>OT</th> <th style="color:#27ae60;">Adj (+)</th> <th style="color:#0284c7;">Other Incomes</th>
+                            <th style="color:#0369a1;">TOTAL EARN</th> <th style="color:#ea580c;">Abs/Late/Ut</th> <th style="color:#047857;">GROSS PAY</th>
+                            <th>SSS</th> <th>PHIC</th> <th>HDMF</th> <th>S.Loan</th> <th>H.Loan</th> <th>O.Loan</th> <th>WTAX</th> <th>Lv(U)</th> 
+                            <th style="color:#be123c;">TOTAL DED</th> <th style="color:#059669;">NET PAY</th>
+                        </tr>
+                        
+                        <tr th:each="p : ${deptGroup.payrolls}" class="payroll-record-row" 
+                            th:attr="data-start=${p.payPeriodStart}, data-end=${p.payPeriodEnd}, data-emp-type=${p.teachingPayRecord != null ? 'FACULTY' : 'NON-FACULTY'}" 
+                            th:id="'row-payroll-' + ${p.id}">
+                            
+                      <td style="text-align: center;">
+    <input type="checkbox" class="row-checkbox" th:value="${p.employee != null ? p.employee.employeeId : ''}" style="cursor:pointer;">
+</td>
+<td class="text-left row-id" style="font-weight: 800; color: #b71c1c;">[[${p.employee != null ? p.employee.employeeId : ''}]]</td>
+<td class="text-left val-bold row-name">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span>[[${p.employee != null ? p.employee.firstName + ' ' + p.employee.lastName : ''}]]</span>
+        <button class="btn-send-single" 
+                th:attr="data-emp=${p.employee != null ? p.employee.employeeId : ''}, data-name=${p.employee != null ? p.employee.firstName + ' ' + p.employee.lastName : ''}" 
+                onclick="sendSinglePayslip(this)" 
+                style="background: none; border: none; color: #0284c7; cursor: pointer; padding: 2px 5px; transition: 0.2s;" 
+                title="Email this payslip to employee">
+            <i class="fas fa-envelope"></i>
+        </button>
+    </div>
+</td>
+                            
+                            <td class="text-right col-basic">[[${#numbers.formatDecimal(p.basicSalary ?: 0, 1, 'COMMA', 2, 'POINT')}]]</td>
+                            
+<td class="text-right col-teach clickable-cell"
+    th:attr="data-emp=${p.employee.firstName + ' ' + p.employee.lastName}, 
+             data-tot-lec-units=${p.teachingPayRecord != null ? p.teachingPayRecord.totalLecUnits : 0},
+             data-tot-lab-units=${p.teachingPayRecord != null ? p.teachingPayRecord.totalLabUnits : 0},
+             data-exc-lec-units=${p.teachingPayRecord != null ? p.teachingPayRecord.excessLecHours : 0},
+             data-exc-lab-units=${p.teachingPayRecord != null ? p.teachingPayRecord.excessLabHours : 0},
+             data-lec-hrs=${p.teachingPayRecord != null ? p.teachingPayRecord.excessLecHours : 0},
+             data-lab-hrs=${p.teachingPayRecord != null ? p.teachingPayRecord.excessLabHours : 0},
+             data-admin-pay=${p.teachingPayRecord != null ? p.teachingPayRecord.adminPay : 0},
+             data-basic-pay=${p.basicSalary != null ? p.basicSalary : 0},
+             data-lec-pay=${p.teachingPayRecord != null ? p.teachingPayRecord.lecPay : 0},
+             data-lab-pay=${p.teachingPayRecord != null ? p.teachingPayRecord.labPay : 0},
+             data-hol-pay=${p.teachingPayRecord != null ? p.teachingPayRecord.holidayPay : 0},
+             data-makeup-pay=${p.teachingPayRecord != null && p.teachingPayRecord.makeUpPay != null ? p.teachingPayRecord.makeUpPay : 0},
+             data-makeup-lec=${p.teachingPayRecord != null && p.teachingPayRecord.makeUpLecHours != null ? p.teachingPayRecord.makeUpLecHours : 0},
+             data-makeup-lab=${p.teachingPayRecord != null && p.teachingPayRecord.makeUpLabHours != null ? p.teachingPayRecord.makeUpLabHours : 0},
+             data-lec-rate=${p.teachingPayRecord != null ? p.teachingPayRecord.hourlyRate : 0},
+             data-lab-rate=${p.teachingPayRecord != null ? p.teachingPayRecord.labRate : 0},
+             data-susp-ded=${p.teachingPayRecord != null ? p.teachingPayRecord.suspensionDeduction : 0},
+             data-susp-dates=${p.teachingPayRecord != null && p.teachingPayRecord.appliedSuspensionDates != null ? p.teachingPayRecord.appliedSuspensionDates : ''},
+             data-tot=${p.teachingPayRecord != null ? p.teachingPayRecord.totalTeachingPay : 0},
+             data-pure-overload=${p.teachingPayRecord != null ? p.teachingPayRecord.totalTeachingPay : 0}"
+    onclick="viewTeachingBreakdown(this)">
+    [[${#numbers.formatDecimal((p.teachingPayRecord != null && p.teachingPayRecord.totalTeachingPay != null ? p.teachingPayRecord.totalTeachingPay : 0), 1, 'COMMA', 2, 'POINT')}]]
+</td>
+                            
+<td class="text-right col-ot clickable-cell val-bold" style="color:#059669;"
+    th:attr="data-emp-name=${p.employee != null ? p.employee.firstName + ' ' + p.employee.lastName : ''}, 
+             data-ot-pay=${p.overtimePay != null ? p.overtimePay : 0},
+             data-min-rate=${p.minuteRate != null ? p.minuteRate : 0}"
+    onclick="viewOvertimeBreakdown(this)">
+    <i class="fas fa-business-time" style="margin-right: 3px; font-size: 9px;"></i>
+    [[${#numbers.formatDecimal((p.overtimePay != null ? p.overtimePay : 0), 1, 'COMMA', 2, 'POINT')}]]
+</td>
+                            
+                            <td class="text-right val-bold col-adj" style="color:#0284c7; background: #f0f9ff;">
+                                [[${#numbers.formatDecimal((p.adjustment ?: 0) + (p.manualAddition ?: 0) - (p.manualDeduction ?: 0), 1, 'COMMA', 2, 'POINT')}]]
+                            </td>
+                            
+                            <td class="text-right col-oth-income clickable-cell val-bold" style="color:#0284c7;"
+                                th:attr="data-emp-name=${p.employee != null ? p.employee.firstName + ' ' + p.employee.lastName : ''}, 
+                                         data-deminimis=${p.deMinimis != null ? p.deMinimis : 0}, 
+                                         data-longevity=${p.longevity != null ? p.longevity : 0}, 
+                                         data-honorarium=${p.honorarium != null ? p.honorarium : 0}, 
+                                         data-holiday=${p.holidayPay != null ? p.holidayPay : 0}, 
+                                         data-leavepay=${p.leavePay != null ? p.leavePay : 0},
+                                         data-cashgift=${p.cashGift != null ? p.cashGift : 0},
+                                         data-incentive=${p.incentive != null ? p.incentive : 0},
+                                         data-adminpay=${p.employee != null && p.employee.adminPay != null ? p.employee.adminPay : 0},
+                                         data-allowance=${p.allowance != null ? p.allowance : 0},
+                                         data-relocation=${p.relocationPay != null ? p.relocationPay : 0}"
+                                onclick="viewOtherIncomeBreakdown(this)">
+                                <i class="fas fa-coins" style="margin-right: 3px; font-size: 9px;"></i>
+                                [[${#numbers.formatDecimal((p.deMinimis != null ? p.deMinimis : 0) + (p.longevity != null ? p.longevity : 0) + (p.honorarium != null ? p.honorarium : 0) + (p.holidayPay != null ? p.holidayPay : 0) + (p.leavePay != null ? p.leavePay : 0) + (p.cashGift != null ? p.cashGift : 0) + (p.incentive != null ? p.incentive : 0) + (p.allowance != null ? p.allowance : 0) + (p.relocationPay != null ? p.relocationPay : 0), 1, 'COMMA', 2, 'POINT')}]]
+                            </td>
+                            
+                            <td class="text-right col-earn clickable-cell val-bold" style="color:#0369a1;" 
+                                th:attr="data-emp=${p.employee.firstName + ' ' + p.employee.lastName},
+                                         data-basic=${p.basicSalary != null ? p.basicSalary : 0},
+                                         data-teach=${p.teachingPayRecord != null ? p.teachingPayRecord.totalTeachingPay : 0},
+                                         data-ot=${p.overtimePay != null ? p.overtimePay : 0},
+                                         data-oth=${(p.deMinimis != null ? p.deMinimis : 0) + (p.longevity != null ? p.longevity : 0) + (p.honorarium != null ? p.honorarium : 0) + (p.holidayPay != null ? p.holidayPay : 0) + (p.leavePay != null ? p.leavePay : 0) + (p.cashGift != null ? p.cashGift : 0) + (p.incentive != null ? p.incentive : 0) + (p.allowance != null ? p.allowance : 0) + (p.relocationPay != null ? p.relocationPay : 0)},
+                                         data-tot=${p.totalEarnings}"
+                                onclick="viewEarningsBreakdown(this)">
+                                <i class="fas fa-search-plus" style="font-size: 9px;"></i> [[${#numbers.formatDecimal(p.totalEarnings ?: 0, 1, 'COMMA', 2, 'POINT')}]]
+                            </td>
+                            
+<td class="text-right col-penalties clickable-cell val-bold" style="color:#ea580c;"
+    th:attr="data-emp-name=${p.employee.firstName + ' ' + p.employee.lastName},
+             data-emp-type=${p.teachingPayRecord != null ? 'FACULTY' : 'NON-FACULTY'},
+             data-absent-ded=${p.absentDeduction}, data-late-ded=${p.lateDeduction}, data-ut-ded=${p.undertimeDeduction},
+             data-absent-days=${p.totalAbsences != null ? p.totalAbsences : 0}, data-late-mins=${p.lateMinutes != null ? p.lateMinutes : 0}, data-ut-mins=${p.undertimeMinutes != null ? p.undertimeMinutes : 0},
+             data-daily-rate=${p.dailyRate != null ? p.dailyRate : 0},
+             data-minute-rate=${p.minuteRate != null ? p.minuteRate : 0}"
+    onclick="viewPenaltiesBreakdown(this)">
+    <i class="fas fa-user-clock" style="margin-right: 3px; font-size: 9px;"></i>
+    [[${#numbers.formatDecimal((p.absentDeduction ?: 0) + (p.lateDeduction ?: 0) + (p.undertimeDeduction ?: 0), 1, 'COMMA', 2, 'POINT')}]]
+</td>
+                            
+                            <td class="text-right col-gross val-bold" style="color:#047857;">[[${#numbers.formatDecimal(p.grossIncome ?: 0, 1, 'COMMA', 2, 'POINT')}]]</td>
+                            
+                            <td class="text-right col-sss">[[${#numbers.formatDecimal(p.sssDeduction ?: 0, 1, 'COMMA', 2, 'POINT')}]]</td>
+                            <td class="text-right col-phic">[[${#numbers.formatDecimal(p.philhealthDeduction ?: 0, 1, 'COMMA', 2, 'POINT')}]]</td>
+                            <td class="text-right col-hdmf">[[${#numbers.formatDecimal(p.pagibigDeduction ?: 0, 1, 'COMMA', 2, 'POINT')}]]</td>
+                            <td class="text-right col-sss-loan">[[${#numbers.formatDecimal(p.sssLoan ?: 0, 1, 'COMMA', 2, 'POINT')}]]</td>
+                            <td class="text-right col-hdmf-loan">[[${#numbers.formatDecimal(p.hdmfLoan ?: 0, 1, 'COMMA', 2, 'POINT')}]]</td>
+                            <td class="text-right col-oth-loan">[[${#numbers.formatDecimal(p.loanDeductions ?: 0, 1, 'COMMA', 2, 'POINT')}]]</td>
+                            <td class="text-right col-tax">[[${#numbers.formatDecimal(p.withholdingTax ?: 0, 1, 'COMMA', 2, 'POINT')}]]</td>
+                            <td class="text-right col-lvu">[[${#numbers.formatDecimal(p.leaveWithoutPay ?: 0, 1, 'COMMA', 2, 'POINT')}]]</td>
+                            
+                            <td class="text-right col-ded clickable-cell val-bold" style="color:#be123c;" 
+                                th:attr="data-emp-name=${p.employee.firstName + ' ' + p.employee.lastName}, 
+                                         data-sss=${p.sssDeduction}, data-phil=${p.philhealthDeduction}, data-pagibig=${p.pagibigDeduction}, data-tax=${p.withholdingTax}, 
+                                         data-sss-loan=${p.sssLoan != null ? p.sssLoan : 0}, data-hdmf-loan=${p.hdmfLoan != null ? p.hdmfLoan : 0}, data-oth-loan=${p.loanDeductions != null ? p.loanDeductions : 0}"
+                                onclick="viewDeductionBreakdown(this)">
+                                <i class="fas fa-search-dollar" style="margin-right: 3px; font-size: 9px;"></i>
+                                [[${#numbers.formatDecimal((p.sssDeduction ?: 0) + (p.philhealthDeduction ?: 0) + (p.pagibigDeduction ?: 0) + (p.sssLoan ?: 0) + (p.hdmfLoan ?: 0) + (p.loanDeductions ?: 0) + (p.withholdingTax ?: 0) + (p.leaveWithoutPay ?: 0), 1, 'COMMA', 2, 'POINT')}]]
+                            </td>
+                            
+                            <td class="text-right col-net val-bold">[[${#numbers.formatDecimal(p.netPay ?: 0, 1, 'COMMA', 2, 'POINT')}]]</td>
+                        </tr>
+                        
+                        <tr class="dept-subtotal-row">
+                            <td colspan="3" class="text-right">DEPT SUBTOTAL:</td>
+                            <td class="text-right sub-basic">₱0.00</td>
+                            <td class="text-right sub-teach">₱0.00</td>
+                            <td class="text-right sub-ot">₱0.00</td>
+                            <td class="text-right sub-adj" style="color: #27ae60;">₱0.00</td>
+                            <td class="text-right sub-oth-income" style="color: #0284c7;">₱0.00</td>
+                            <td class="text-right sub-earn" style="color: #0369a1;">₱0.00</td>
+                            <td class="text-right sub-penalties" style="color: #ea580c;">₱0.00</td>
+                            <td class="text-right sub-gross" style="color: #047857;">₱0.00</td>
+                            <td class="text-right sub-sss">₱0.00</td>
+                            <td class="text-right sub-phic">₱0.00</td>
+                            <td class="text-right sub-hdmf">₱0.00</td>
+                            <td class="text-right sub-sss-loan">₱0.00</td>
+                            <td class="text-right sub-hdmf-loan">₱0.00</td>
+                            <td class="text-right sub-oth-loan">₱0.00</td>
+                            <td class="text-right sub-tax">₱0.00</td>
+                            <td class="text-right sub-lvu">₱0.00</td>
+                            <td class="text-right sub-ded" style="color: #be123c;">₱0.00</td>
+                            <td class="text-right sub-net col-net">₱0.00</td>
+                        </tr>
+                    </tbody>
+                    
+                    <tfoot>
+                        <tr>
+                            <td colspan="3" style="text-align: right; font-weight: 900; letter-spacing: 1px;">OVERALL GRAND TOTAL:</td>
+                            <td class="text-right gt-basic" th:text="${'₱' + #numbers.formatDecimal(grandBasicPay ?: 0, 1, 'COMMA', 2, 'POINT')}">₱0.00</td>
+                            <td class="text-right gt-teach" th:text="${'₱' + #numbers.formatDecimal(grandTeach ?: 0, 1, 'COMMA', 2, 'POINT')}">₱0.00</td>
+                            <td class="text-right gt-ot" th:text="${'₱' + #numbers.formatDecimal(grandOvertime ?: 0, 1, 'COMMA', 2, 'POINT')}">₱0.00</td>
+                            <td class="text-right gt-adj" style="color: #16a34a !important;" th:text="${'₱' + #numbers.formatDecimal(grandAdjustment ?: 0, 1, 'COMMA', 2, 'POINT')}">₱0.00</td>
+                            <td class="text-right gt-oth-income" style="color: #0284c7 !important;" th:text="${'₱' + #numbers.formatDecimal((grandLeavePaid ?: 0) + (grandHonorarium ?: 0), 1, 'COMMA', 2, 'POINT')}">₱0.00</td>
+                            <td class="text-right gt-earn" style="color: #0369a1 !important;" th:text="${'₱' + #numbers.formatDecimal(grandTotalEarn ?: 0, 1, 'COMMA', 2, 'POINT')}">₱0.00</td>
+                            <td class="text-right gt-penalties" style="color: #ea580c !important;" th:text="${'₱' + #numbers.formatDecimal(grandPenalties ?: 0, 1, 'COMMA', 2, 'POINT')}">₱0.00</td>
+                            <td class="text-right gt-gross" style="color: #047857 !important;" th:text="${'₱' + #numbers.formatDecimal(grandGrossPay ?: 0, 1, 'COMMA', 2, 'POINT')}">₱0.00</td>
+                            
+                            <td class="text-right gt-sss" th:text="${'₱' + #numbers.formatDecimal(grandSSS ?: 0, 1, 'COMMA', 2, 'POINT')}">₱0.00</td>
+                            <td class="text-right gt-phic" th:text="${'₱' + #numbers.formatDecimal(grandPhilHealth ?: 0, 1, 'COMMA', 2, 'POINT')}">₱0.00</td>
+                            <td class="text-right gt-hdmf" th:text="${'₱' + #numbers.formatDecimal(grandPagIbig ?: 0, 1, 'COMMA', 2, 'POINT')}">₱0.00</td>
+                            <td class="text-right gt-sss-loan" th:text="${'₱' + #numbers.formatDecimal(grandSLoan ?: 0, 1, 'COMMA', 2, 'POINT')}">₱0.00</td>
+                            <td class="text-right gt-hdmf-loan" th:text="${'₱' + #numbers.formatDecimal(grandHLoan ?: 0, 1, 'COMMA', 2, 'POINT')}">₱0.00</td>
+                            <td class="text-right gt-oth-loan" th:text="${'₱' + #numbers.formatDecimal(grandOLoan ?: 0, 1, 'COMMA', 2, 'POINT')}">₱0.00</td>
+                            <td class="text-right gt-tax" th:text="${'₱' + #numbers.formatDecimal(grandTax ?: 0, 1, 'COMMA', 2, 'POINT')}">₱0.00</td>
+                            <td class="text-right gt-lvu" th:text="${'₱' + #numbers.formatDecimal(grandLeaveUnpaid ?: 0, 1, 'COMMA', 2, 'POINT')}">₱0.00</td>
+                            
+                            <td class="text-right gt-ded" style="color: #be123c !important;" th:text="${'₱' + #numbers.formatDecimal(grandTotalDed ?: 0, 1, 'COMMA', 2, 'POINT')}">₱0.00</td>
+                            <td class="text-right gt-net col-net" th:text="${'₱' + #numbers.formatDecimal(grandNetPay ?: 0, 1, 'COMMA', 2, 'POINT')}">₱0.00</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+
+        <div id="otherIncomeModal" class="modal">
+            <div class="modal-content mod-sm">
+                <div class="mod-header mod-header-blue">
+                    <h3><i class="fas fa-coins"></i> Other Incomes</h3>
+                    <span class="close-btn-white" onclick="closeOtherIncomeModal()">&times;</span>
+                </div>
+                <div class="mod-body">
+                    <div class="info-box info-box-blue border-blue"><span class="info-label">Employee:</span> <span id="othEmpName" class="val-bold text-blue"></span></div>
+                    <table class="mod-table">
+                        <tbody>
+                            <tr style="background:#f1f5f9;"><td colspan="2" style="font-weight:bold; color:#0f172a; padding:5px 10px;">🛡️ NON-TAXABLE</td></tr>
+                            <tr><td class="label-cell">De Minimis</td><td class="val-cell text-blue" id="modOthDeminimis">₱0.00</td></tr>
+                            <tr><td class="label-cell">Longevity Pay</td><td class="val-cell text-blue" id="modOthLongevity">₱0.00</td></tr>
+                            <tr><td class="label-cell">Cash Gift</td><td class="val-cell text-blue" id="modOthCashGift">₱0.00</td></tr>
+                            <tr><td class="label-cell">Incentive</td><td class="val-cell text-blue" id="modOthIncentive">₱0.00</td></tr>
+                            
+                            <tr style="background:#fefce8;"><td colspan="2" style="font-weight:bold; color:#854d0e; padding:5px 10px;">⚠️ TAXABLE</td></tr>
+                            <tr><td class="label-cell">Admin Pay</td><td class="val-cell text-blue" id="modOthAdminPay">₱0.00</td></tr>
+                            <tr><td class="label-cell">Allowance</td><td class="val-cell text-blue" id="modOthAllowance">₱0.00</td></tr>
+                            <tr><td class="label-cell">Relocation Pay</td><td class="val-cell text-blue" id="modOthRelocation">₱0.00</td></tr>
+                            <tr><td class="label-cell">Honorarium</td><td class="val-cell text-blue" id="modOthHonorarium">₱0.00</td></tr>
+                            <tr><td class="label-cell">Holiday Pay</td><td class="val-cell text-blue" id="modOthHoliday">₱0.00</td></tr>
+                            <tr><td class="label-cell">Paid Leaves</td><td class="val-cell text-blue" id="modOthLeave">₱0.00</td></tr>
+                        </tbody>
+                        <tfoot class="foot-blue">
+                            <tr><td>Total Other Incomes</td><td id="modOthTotal">₱0.00</td></tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+<div id="earningsModal" class="modal">
+            <div class="modal-content mod-sm border-blue">
+                <div class="mod-header mod-header-light">
+                    <h3 class="text-blue"><i class="fas fa-chart-pie"></i> Total Earnings Summary</h3>
+                    <span class="close-btn-dark" onclick="closeEarningsModal()">&times;</span>
+                </div>
+                <div class="mod-body">
+                    <div class="info-box info-box-blue">
+                        <span class="info-label">Employee:</span> <span id="earnEmpName" class="val-bold text-blue">----</span>
+                    </div>
+                    <table class="mod-table">
+                        <tbody>
+                            <tr><td class="label-cell">Basic Pay</td><td class="val-cell text-blue" id="modBasicAmt">₱0.00</td></tr>
+                            <tr><td class="label-cell">Teaching Pay</td><td class="val-cell text-blue" id="modTeachAmt">₱0.00</td></tr>
+                            <tr><td class="label-cell">Overtime Pay</td><td class="val-cell text-blue" id="modOtAmt">₱0.00</td></tr>
+                            <tr><td class="label-cell">Other Incomes</td><td class="val-cell text-blue" id="modEarnOthAmt">₱0.00</td></tr>
+                        </tbody>
+                        <tfoot class="foot-blue">
+                            <tr><td>GRAND TOTAL EARNINGS:</td><td id="modTotEarnAmt">₱0.00</td></tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="penaltiesModal" class="modal">
+            <div class="modal-content mod-md border-orange">
+                <div class="mod-header mod-header-light">
+                    <h3 class="text-orange"><i class="fas fa-user-clock"></i> Penalties Breakdown</h3>
+                    <span class="close-btn-dark" onclick="closePenaltiesModal()">&times;</span>
+                </div>
+                <div class="mod-body">
+                    <div class="info-box info-box-orange">
+                        <span class="info-label">Employee:</span> <span id="penaltiesEmpName" class="val-bold text-orange">----</span>
+                    </div>
+                    <table class="mod-table">
+                        <thead>
+                            <tr><th class="text-left">Penalty Type</th><th>Deducted Amount</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="label-cell">Absences <span id="modPenAbsDays" style="font-size:11px; color:#666; margin-left:4px;"></span> <br><span id="modPenAbsRate" style="font-size:11px; color:#666;"></span></td>
+                                <td class="val-cell text-orange" id="modPenAbsAmt">₱0.00</td>
+                            </tr>
+                            <tr>
+                                <td class="label-cell">Lates <span id="modPenLateMins" style="font-size:11px; color:#666; margin-left:4px;"></span> <br><span id="modPenLateRate" style="font-size:11px; color:#666;"></span></td>
+                                <td class="val-cell text-orange" id="modPenLateAmt">₱0.00</td>
+                            </tr>
+                            <tr>
+                                <td class="label-cell">Undertime <span id="modPenUtMins" style="font-size:11px; color:#666; margin-left:4px;"></span> <br><span id="modPenUtRate" style="font-size:11px; color:#666;"></span></td>
+                                <td class="val-cell text-orange" id="modPenUtAmt">₱0.00</td>
+                            </tr>
+                        </tbody>
+                        <tfoot class="foot-orange">
+                            <tr><td>TOTAL PENALTIES:</td><td id="modPenTotal">₱0.00</td></tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="deductionModal" class="modal">
+            <div class="modal-content mod-md border-red">
+                <div class="mod-header mod-header-light">
+                    <h3 class="text-red"><i class="fas fa-receipt"></i> Gov't & Loan Deductions</h3>
+                    <span class="close-btn-dark" onclick="closeDeductionModal()">&times;</span>
+                </div>
+                <div class="mod-body">
+                    <div class="info-box info-box-red">
+                        <span class="info-label">Employee:</span> <span id="deductionEmpName" class="val-bold text-red">----</span>
+                    </div>
+                    <table class="mod-table">
+                        <thead>
+                            <tr><th class="text-left">Deduction Type</th><th>Amount</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td class="label-cell">SSS (EE)</td><td class="val-cell text-red" id="modSss">₱0.00</td></tr>
+                            <tr><td class="label-cell">PhilHealth (EE)</td><td class="val-cell text-red" id="modPhil">₱0.00</td></tr>
+                            <tr><td class="label-cell">Pag-IBIG (EE)</td><td class="val-cell text-red" id="modPagibig">₱0.00</td></tr>
+                            <tr><td class="label-cell">Withholding Tax</td><td class="val-cell text-red" id="modTax">₱0.00</td></tr>
+                            <tr><td class="label-cell">SSS Loan</td><td class="val-cell text-red" id="modSssLoan">₱0.00</td></tr>
+                            <tr><td class="label-cell">HDMF Loan</td><td class="val-cell text-red" id="modHdmfLoan">₱0.00</td></tr>
+                            <tr><td class="label-cell">Other Loans</td><td class="val-cell text-red" id="modOthLoan">₱0.00</td></tr>
+                        </tbody>
+                        <tfoot class="foot-red">
+                            <tr><td>GOV & LOAN TOTAL:</td><td id="modTotalDed">₱0.00</td></tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="overtimeModal" class="modal">
+            <div class="modal-content mod-sm border-green">
+                <div class="mod-header mod-header-light">
+                    <h3 class="text-green"><i class="fas fa-business-time"></i> Overtime Breakdown</h3>
+                    <span class="close-btn-dark" onclick="closeOvertimeModal()">&times;</span>
+                </div>
+                <div class="mod-body">
+                    <div class="info-box info-box-green">
+                        <span class="info-label">Employee:</span> <span id="otEmpName" class="val-bold text-green">----</span>
+                    </div>
+                    <table class="mod-table">
+                        <thead>
+                            <tr><th class="text-left">Type</th><th>Amount</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="label-cell">
+                                    Regular Overtime <br>
+                                    <span id="modOtMinsDetail" style="font-size:11px; color:#666;"></span>
+                                </td>
+                                <td class="val-cell text-green" id="modOtTotalAmt">₱0.00</td>
+                            </tr>
+                        </tbody>
+                        <tfoot class="foot-green">
+                            <tr><td>TOTAL OVERTIME PAY:</td><td id="modOtGrandTotal">₱0.00</td></tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="teachingModal" class="modal">
+            <div class="modal-content mod-lg border-darkred" style="max-width: 650px;">
+                <span class="close-btn-abs" onclick="closeTeachingModal()">&times;</span>
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <h2 class="teach-title">TEACHING BREAKDOWN</h2>
+                    <div class="teach-name-badge">Name: <span id="teachEmpName" style="color:#b71c1c;">---</span></div>
+                </div>
+                
+                <div class="teach-summary-container">
+                    <h4 style="margin: 0 0 10px 0; color: #1565c0; font-size: 15px;"><i class="fas fa-book"></i> Load & Unit Details</h4>
+                    <table class="mod-table" style="margin-bottom: 15px; font-size: 13px;">
+                        <thead>
+                            <tr>
+                                <th class="text-left">Subject Type</th>
+                                <th>Total Units Taught</th>
+                                <th style="color:#d32f2f;">Excess Hours</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="label-cell">Lecture <small style="color:#666;">(1 Unit = 1 Hr)</small></td>
+                                <td class="val-cell text-dark" id="modTeachTotLec">0.0</td>
+                                <td class="val-cell text-red" id="modTeachExcLec">0.0</td>
+                            </tr>
+                            <tr>
+                                <td class="label-cell">Laboratory <small style="color:#666;">(1 Unit = 3 Hrs)</small></td>
+                                <td class="val-cell text-dark" id="modTeachTotLab">0.0</td>
+                                <td class="val-cell text-red" id="modTeachExcLab">0.0</td>
+                            </tr>
+                            <tr style="background-color: #f1f5f9; font-weight: bold;">
+                                <td class="label-cell text-right" style="color:#475569;">GRAND TOTALS</td>
+                                <td class="val-cell text-blue" id="modTeachGrandTotUnits">0.0</td>
+                                <td class="val-cell text-red" id="modTeachGrandExcUnits">0.0</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div id="modTeachNoticeBox" style="background-color: #e0f2fe; padding: 12px; border-radius: 6px; border-left: 4px solid #0284c7; margin-bottom: 15px; font-size: 12.5px; color: #0369a1; line-height: 1.4;">
+                    </div>
+
+  <table class="mod-table" style="margin:0;">
+                        <thead class="teach-table-header">
+                            <tr>
+                                <th class="text-left" colspan="2" style="background:#f1f5f9; color:#0f172a; padding: 10px;">PAYABLE TEACHING EARNINGS</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="label-cell">
+                                    Lecture Pay 
+                                    <span id="modLecRateDetail" style="font-size:11px; color:#666; display:block; margin-top:2px;"></span>
+                                </td>
+                                <td class="val-cell text-dark" id="modTeachLecPay" style="font-weight: 600;">₱0.00</td>
+                            </tr>
+                            <tr>
+                                <td class="label-cell">
+                                    Laboratory Pay 
+                                    <span id="modLabRateDetail" style="font-size:11px; color:#666; display:block; margin-top:2px;"></span>
+                                </td>
+                                <td class="val-cell text-dark" id="modTeachLabPay" style="font-weight: 600;">₱0.00</td>
+                            </tr>
+                            <tr>
+                                <td class="label-cell">Holiday Pay</td>
+                                <td class="val-cell text-dark" id="modTeachHolPay" style="font-weight: 600;">₱0.00</td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="label-cell" style="color: #0284c7;">
+                                    Make-Up Class Pay 
+                                    <span id="modMakeUpRateDetail" style="font-size:11px; color:#666; display:block; margin-top:2px;"></span>
+                                </td>
+                                <td class="val-cell text-blue" id="modTeachMakeUpPay" style="font-weight: 600;">₱0.00</td>
+                            </tr>
+                            
+                            <tr>
+                                <td class="label-cell" style="color: #d32f2f;">
+                                    Suspension Deduction 
+                                    <span id="modTeachSuspDates" style="font-size:11px; display:block; margin-top:2px;"></span>
+                                </td>
+                                <td class="val-cell text-red" id="modTeachSuspDed" style="font-weight: 600;">- ₱0.00</td>
+                            </tr>
+                        </tbody>
+                        <tfoot style="background-color:#f8f9fa;">
+                            <tr>
+                                <td style="color:#2e7d32; font-weight: 900; font-size: 15px;">TOTAL TEACHING PAY:</td>
+                                <td style="color:#2e7d32; font-weight: 900; font-size: 15px;" id="modTeachTotAmt">₱0.00</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+<div id="adjustmentModal" class="modal">
+    <div class="modal-content mod-md border-green" style="max-width: 650px; padding: 0; background: #f8fafc;">
+        
+        <div class="mod-header mod-header-light" style="background: #fff; padding: 18px 25px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="margin: 0; color: #0f172a; font-size: 18px;"><i class="fas fa-sliders-h" style="color: #10b981; margin-right: 8px;"></i> Manual Payroll Adjustment</h3>
+            <span class="close-btn-dark" onclick="closeAdjustmentModal()" style="font-size: 24px; cursor: pointer; color: #64748b; transition: 0.2s;">&times;</span>
+        </div>
+        
+        <div class="mod-body" style="padding: 25px;">
+            
+<div class="form-group" style="margin-bottom: 25px; position: relative;">
+    <label style="font-weight: 700; color: #334155; display: block; margin-bottom: 8px; font-size: 14px;">Search & Select Employee:</label>
+    
+    <div style="position: relative;">
+        <i class="fas fa-search" style="position: absolute; left: 15px; top: 13px; color: #0ea5e9; font-size: 15px;"></i>
+        <input type="text" id="adjSearchInput" placeholder="Type employee name..." autocomplete="off" onkeyup="filterCustomDropdown()" onclick="toggleCustomDropdown()" style="width: 100%; padding: 12px 15px 12px 42px; border-radius: 6px; border: 2px solid #e0f2fe; font-size: 14px; font-weight: 600; background: #fff; color: #0f172a; transition: 0.2s; cursor: text; outline: none;">
+        <i class="fas fa-chevron-down" style="position: absolute; right: 15px; top: 13px; color: #94a3b8; font-size: 14px; cursor: pointer;" onclick="toggleCustomDropdown()"></i>
+    </div>
+
+    <ul id="customDropdownList" style="display: none; position: absolute; z-index: 9999; top: 100%; left: 0; width: 100%; background: #fff; border: 1px solid #cbd5e1; border-radius: 6px; max-height: 220px; overflow-y: auto; margin-top: 5px; padding: 0; list-style: none; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);">
+    </ul>
+
+    <select id="adjEmployeeSelect" style="display: none;">
+        <option value="">-- Choose an Employee --</option>
+        <th:block th:each="group : ${groupedPayrolls}">
+            <th:block th:each="p : ${group.payrolls}">
+                <option th:value="${p.id}"
+                        th:text="${p.employee.lastName + ', ' + p.employee.firstName}"
+                        th:attr="data-late-mins=${p.lateMinutes ?: 0},
+                                 data-ut-mins=${p.undertimeMinutes ?: 0},
+                                 data-abs-days=${p.totalAbsences ?: 0},
+                                 data-manual-add=${p.manualAddition ?: 0},
+                                 data-manual-ded=${p.manualDeduction ?: 0},
+                                 data-sss-loan=${p.sssLoan ?: 0},
+                                 data-hdmf-loan=${p.hdmfLoan ?: 0},
+                                 data-oth-loan=${p.loanDeductions ?: 0}">
+                </option>
+            </th:block>
+        </th:block>
+    </select>
+</div>
+            
+            <div id="adjNotice" style="background-color: #e0f2fe; padding: 15px; border-radius: 6px; border-left: 4px solid #0284c7; margin-bottom: 5px; font-size: 13px; color: #0369a1; display: flex; align-items: center; gap: 12px;">
+                <i class="fas fa-info-circle" style="font-size: 20px; color: #0284c7;"></i>
+                <span>Select an employee above to safely modify their attendance or apply special cash overrides. Net Pay will recalculate automatically.</span>
+            </div>
+            
+            <div id="adjustmentInputsArea" style="display: none; grid-template-columns: 1fr 1fr; gap: 20px;">
+                
+                <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                    <div style="background: #fff7ed; padding: 12px 15px; border-bottom: 1px solid #ffedd5;">
+                        <h4 style="margin: 0; color: #ea580c; font-size: 14px;"><i class="fas fa-clock" style="margin-right: 5px;"></i> Time & Attendance</h4>
+                    </div>
+                    <div style="padding: 15px;">
+                        <div class="form-group" style="margin-bottom: 12px;">
+                            <label style="font-size:12px; color: #64748b; font-weight: 600; display:flex; justify-content: space-between;">Late (Minutes) <i class="fas fa-stopwatch" style="color:#cbd5e1;"></i></label>
+                            <input type="number" id="adjLateMins" class="form-control" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; text-align: right; font-family: monospace; font-size: 14px;">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 12px;">
+                            <label style="font-size:12px; color: #64748b; font-weight: 600; display:flex; justify-content: space-between;">Undertime (Minutes) <i class="fas fa-hourglass-half" style="color:#cbd5e1;"></i></label>
+                            <input type="number" id="adjUtMins" class="form-control" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; text-align: right; font-family: monospace; font-size: 14px;">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label style="font-size:12px; color: #64748b; font-weight: 600; display:flex; justify-content: space-between;">Absences (Days) <i class="fas fa-calendar-times" style="color:#cbd5e1;"></i></label>
+                            <input type="number" id="adjAbsDays" class="form-control" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; text-align: right; font-family: monospace; font-size: 14px;">
+                        </div>
+                    </div>
+                </div>
+
+                <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                    <div style="background: #f0f9ff; padding: 12px 15px; border-bottom: 1px solid #e0f2fe;">
+                        <h4 style="margin: 0; color: #0284c7; font-size: 14px;"><i class="fas fa-money-bill-wave" style="margin-right: 5px;"></i> Financial Overrides</h4>
+                    </div>
+                    <div style="padding: 15px;">
+                        
+                        <div class="form-group" style="margin-bottom: 12px;">
+                            <label style="font-size:12px; color: #64748b; font-weight: 600; display:flex; justify-content: space-between;">Manual Addition (₱) <i class="fas fa-plus-circle" style="color:#22c55e;"></i></label>
+                            <input type="number" step="0.01" id="adjManualAdd" class="form-control" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; text-align: right; font-family: monospace; font-size: 14px; color: #16a34a; font-weight: bold; background: #f0fdf4;">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 12px;">
+                            <label style="font-size:12px; color: #64748b; font-weight: 600; display:flex; justify-content: space-between;">Manual Deduction (₱) <i class="fas fa-minus-circle" style="color:#ef4444;"></i></label>
+                            <input type="number" step="0.01" id="adjManualDed" class="form-control" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; text-align: right; font-family: monospace; font-size: 14px; color: #dc2626; font-weight: bold; background: #fef2f2;">
+                        </div>
+                        
+                        <div class="form-group" style="margin-bottom: 12px;">
+                            <label style="font-size:12px; color: #64748b; font-weight: 600; display:flex; justify-content: space-between;">SSS Loan (₱) <i class="fas fa-building" style="color:#cbd5e1;"></i></label>
+                            <input type="number" step="0.01" id="adjSssLoan" class="form-control" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; text-align: right; font-family: monospace; font-size: 14px; color: #dc2626; font-weight: bold; background: #fef2f2;">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 12px;">
+                            <label style="font-size:12px; color: #64748b; font-weight: 600; display:flex; justify-content: space-between;">Pag-IBIG Loan (₱) <i class="fas fa-home" style="color:#cbd5e1;"></i></label>
+                            <input type="number" step="0.01" id="adjHdmfLoan" class="form-control" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; text-align: right; font-family: monospace; font-size: 14px; color: #dc2626; font-weight: bold; background: #fef2f2;">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label style="font-size:12px; color: #64748b; font-weight: 600; display:flex; justify-content: space-between;">Other Loans (₱) <i class="fas fa-hand-holding-usd" style="color:#cbd5e1;"></i></label>
+                            <input type="number" step="0.01" id="adjOtherLoan" class="form-control" style="width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; text-align: right; font-family: monospace; font-size: 14px; color: #dc2626; font-weight: bold; background: #fef2f2;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="margin-top: 25px; border-top: 1px solid #e2e8f0; padding-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="button" class="btn-dark" style="background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; padding: 10px 20px; border-radius: 6px; font-weight: 600; cursor: pointer;" onclick="closeAdjustmentModal()">Cancel</button>
+                <button type="button" class="btn-primary" id="btnSaveAdj" style="display: none; padding: 10px 20px; border: none; border-radius: 6px; background: #10b981; color: white; cursor: pointer; font-weight: 600; box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);" onclick="saveAdjustment()">
+                    <i class="fas fa-save" style="margin-right: 5px;"></i> Save & Recalculate
+                </button>
+            </div>
+            
+        </div>
+    </div>
+</div>
+        
+        <div id="confirmModal" class="modal">
+            <div class="modal-content mod-sm" style="max-width: 400px; text-align: center; border-radius: 8px; border-top: 4px solid #f39c12; padding: 0;">
+                <div class="mod-header" style="justify-content: center; background-color: #fffaf0; border-bottom: 1px solid #f5e6d3; padding: 15px;">
+                    <h3 style="margin: 0; color: #d68910;"><i class="fas fa-question-circle"></i> Confirmation</h3>
+                </div>
+                <div class="mod-body" style="padding: 20px;">
+                    <p id="confirmModalMessage" style="font-size: 15px; color: #444; margin-bottom: 25px; line-height: 1.5;">Are you sure?</p>
+                    <div style="display: flex; justify-content: center; gap: 15px;">
+                        <button id="btnConfirmCancel" style="padding: 8px 20px; border-radius: 5px; border: 1px solid #ccc; background: #f8f9fa; color: #333; cursor: pointer; font-weight: 600;">Cancel</button>
+                        <button id="btnConfirmOk" style="padding: 8px 20px; border-radius: 5px; background-color: #27ae60; color: white; border: none; cursor: pointer; font-weight: 600;"><i class="fas fa-check"></i> Yes, Proceed</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    </div> 
+    
+<th:block id="extra-scripts">
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        
+        <script th:src="@{/js/script_payroll_register.js}"></script>
+        
+        <script>
+            function exportPBCOM() {
+                const startDate = document.getElementById('startDateFilter').value;
+                const endDate = document.getElementById('endDateFilter').value;
+                const department = document.getElementById('registerDepartment').value || 'ALL';
+                
+                if (!startDate || !endDate) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Select Dates First',
+                        text: 'You must select a Cutoff Start Date and End Date to generate the PBCOM export.',
+                        confirmButtonColor: '#0f172a'
+                    });
+                    return;
+                }
+                
+                // Use the contextPath variable (defined at the top of script_payroll_register.js)
+                // This ensures it works on both embedded Tomcat (Java) and external Tomcat
+                const params = new URLSearchParams({ start: startDate, end: endDate, department: department });
+                window.location.href = contextPath + `/api/payroll/export/pbcom?${params.toString()}`;
+            }
+        </script>
+    </th:block>
+</body>
+</html>

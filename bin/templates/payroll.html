@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payroll Management - Payroll System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" th:href="@{/css/style_payroll.css}">
+    <link rel="stylesheet" th:href="@{/css/sidebar.css?v=2}">
+</head>
+<body>
+
+<div th:replace="~{sidebar :: menu('payroll')}"></div>
+ 
+<main class="main">
+    <div class="header-section">
+        <h1><i class="fas fa-file-invoice-dollar"></i> Payroll Management</h1>
+        <p class="subtitle">Calculate and generate employee payslips</p>
+    </div>
+
+    <div class="grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <div class="card">
+            <h3><i class="fas fa-calculator"></i> Payroll Setup</h3>
+            
+            <div class="form-group">
+                <label for="employeeId"><i class="fas fa-user"></i> Employee ID or Name</label>
+                <input type="text" id="employeeId" placeholder="e.g., 101 or John" required>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div class="form-group">
+                    <label for="startDate"><i class="fas fa-calendar-alt"></i> Period Start</label>
+                    <input type="date" id="startDate">
+                </div>
+                <div class="form-group">
+                    <label for="endDate"><i class="fas fa-calendar-alt"></i> Period End</label>
+                    <input type="date" id="endDate">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="loan"><i class="fas fa-hand-holding-usd"></i> Loan Deductions (Optional)</label>
+                <input type="number" id="loan" placeholder="0.00">
+            </div>
+
+            <div style="margin-top: 15px;">
+                <button id="calculateBtn" type="button" onclick="calculatePayroll()" style="background-color: #3b82f6; width: 100%; padding: 12px; margin-bottom: 10px; font-weight: bold; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                    <i class="fas fa-calculator"></i> Preview Calculation
+                </button>
+
+                <button id="sendBtn" type="button" onclick="sendPayroll()" style="background-color: #10b981; width: 100%; padding: 12px; font-weight: bold; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                    <i class="fas fa-paper-plane"></i> Publish & Send to Employee
+                </button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3><i class="fas fa-file-invoice-dollar"></i> Official Payslip Preview</h3>
+            <div id="payslipContent" style="background: #f8fafc; padding: 20px; border-radius: 8px; border: 1px dashed #cbd5e1;">
+                
+                <h4 style="margin-top: 0; color: #64748b; font-size: 14px;">EARNINGS</h4>
+                <div style="display: flex; justify-content: space-between;">
+                    <span>Basic Pay (Period):</span> <span id="basicSalary" style="color: #333;">₱0.00</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span>Teaching Pay (Excess Units):</span> <span id="teachingPay" style="color: #10b981;">+ ₱0.00</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span>De Minimis (Non-Taxable):</span> <span id="deMinimis" style="color: #10b981;">+ ₱0.00</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span>Overtime Pay:</span> <span id="otDisplay" style="color: #10b981;">+ ₱0.00</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; border-top: 1px solid #e2e8f0; padding-top: 5px; margin-top: 5px; font-weight: bold;">
+                    <span>GROSS PAY:</span> <span id="grossPay" style="color: #1e293b;">₱0.00</span>
+                </div>
+
+                <h4 style="margin-top: 15px; color: #64748b; font-size: 14px;">DEDUCTIONS & TAXES</h4>
+                <div style="display: flex; justify-content: space-between;">
+                    <span>Late/Undertime Deduction:</span> <span id="utDisplay" style="color: #ef4444;">- ₱0.00</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span>Absent Deduction:</span> <span id="absentDed" style="color: #ef4444;">- ₱0.00</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span>SSS Contribution:</span> <span id="sssDed" style="color: #ef4444;">- ₱0.00</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span>PhilHealth Contribution:</span> <span id="philhealthDed" style="color: #ef4444;">- ₱0.00</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span>Pag-IBIG Contribution:</span> <span id="pagibigDed" style="color: #ef4444;">- ₱0.00</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span>Withholding Tax:</span> <span id="taxDed" style="color: #ef4444;">- ₱0.00</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span>Loan Deductions:</span> <span id="loanDed" style="color: #ef4444;">- ₱0.00</span>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; font-size: 20px; font-weight: bold; background: #e0f2fe; padding: 15px; border-radius: 5px; margin-top: 15px;">
+                    <span style="color: #0369a1;">NET PAY:</span> <span id="netPay" style="color: #0369a1;">₱0.00</span>
+                </div>
+                
+                <div style="text-align: center; margin-top: 10px; font-size: 11px; color: #94a3b8;">
+                    <span>13th Month Pay Accrued for Period: <span id="thirteenthAccrual">₱0.00</span></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script th:src="@{/js/payroll.js}"></script>
+</body>
+</html>

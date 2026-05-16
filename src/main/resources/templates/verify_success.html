@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Verification Successful</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/user_login.css}">
+    
+    <style>
+        .login-card {
+            display: block !important;
+            opacity: 1 !important;
+            transform: translateY(0) !important;
+            animation: none !important;
+            margin-top: 50px;
+        }
+        body {
+            background-color: #f4f6f9;
+        }
+    </style>
+</head>
+<body>
+    <main class="login-card" style="text-align: center; padding: 40px 20px;">
+        <i class="fa-solid fa-circle-check" style="font-size: 60px; color: #2e7d32; margin-bottom: 20px;"></i>
+        <h2>Email Verified!</h2>
+        <p style="margin-bottom: 30px; color: #666;">Your account has been successfully verified. You can now access the Payroll Panel.</p>
+        <a th:href="@{/login}" class="btn-primary" style="text-decoration: none; display: inline-block;">Go to Login</a>
+    </main>
+</body>
+</html>

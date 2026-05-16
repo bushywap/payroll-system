@@ -1,0 +1,196 @@
+:root {
+    --eac-red: #ec0e0e;
+    --eac-red-dark: #700000;
+    --eac-gold: #FFC107;
+    --bg-overlay: linear-gradient(135deg, rgba(168, 86, 71, 0.77) 0%, rgba(50, 5, 5, 0.95) 100%);
+    --card-bg: #ffffff;
+    --text-main: #1f2937;
+    --text-muted: #6b7280;
+    --border-color: #e5e7eb;
+    --input-bg: #f9fafb;
+    --error: #dc2626;
+    --success: #059669;
+    --focus-ring: rgba(153, 0, 0, 0.15);
+}
+
+/* Reset + Typography */
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+
+html, body { height: 100%; }
+
+body {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+	background: var(--bg-overlay), url('../images/eac_cover.jpg');
+    background-size: cover;
+    background-position: center;
+}
+
+/* Login Card */
+.login-card {
+    background: var(--card-bg);
+    padding: 36px;
+    border-radius: 12px;
+    max-width: 520px;
+    width: 100%;
+    border-top: 5px solid var(--eac-gold);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, .45);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Logo Overlay */
+.login-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url('../images/eac_cover.jpg') center/contain no-repeat;
+    opacity: 0.03;
+    pointer-events: none;
+}
+
+/* Header */
+.header-text { text-align: center; margin-bottom: 22px; }
+.brand-logo { height: 86px; margin-bottom: 8px; }
+.header-text h2 { font-family: 'Merriweather', serif; color: var(--eac-red); font-size: 22px; }
+.header-text p { color: var(--text-muted); font-size: 13px; }
+
+/* Form */
+.row { display: flex; gap: 12px; }
+.field { position: relative; margin-bottom: 16px; }
+
+.field input,
+.field select {
+    width: 100%;
+    padding: 13px 44px 13px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background: var(--input-bg);
+    font-size: 14px;
+    color: var(--text-main);
+    transition: box-shadow .18s, border-color .18s;
+}
+
+/* Floating Label */
+.field label {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+    font-size: 13px;
+    pointer-events: none;
+    transition: all .18s;
+}
+
+.field input:focus,
+.field select:focus {
+    border-color: var(--eac-red);
+    box-shadow: 0 0 0 6px var(--focus-ring);
+    outline: 0;
+    background: #fff;
+}
+
+.field input:focus+label,
+.field input:not(:placeholder-shown)+label,
+.field select:focus+label,
+.field select:not([value=""])+label {
+    top: -8px;
+    left: 10px;
+    background: var(--card-bg);
+    padding: 0 6px;
+    color: var(--eac-red);
+    font-weight: 600;
+    font-size: 12px;
+}
+
+/* Icons */
+.input-icon {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 16px;
+    color: #9ca3af;
+}
+
+/* Actions */
+.actions {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 18px;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.forgot-link { color: var(--eac-red); font-weight: 600; text-decoration: none; }
+
+/* Button */
+.btn-primary {
+    width: 100%;
+    padding: 13px;
+    border-radius: 8px;
+    background: linear-gradient(90deg, var(--eac-red), var(--eac-red-dark));
+    border: none;
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+}
+
+.loader {
+    width: 18px;
+    height: 18px;
+    border: 2px solid rgba(255, 255, 255, .25);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
+    display: none;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Toast */
+.toast-container { position: fixed; top: 20px; right: 20px; z-index: 2000; }
+.toast {
+    background: #fff;
+    padding: 12px 16px;
+    border-radius: 10px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, .12);
+    display: flex;
+    gap: 12px;
+    border-left: 4px solid #ccc;
+    transform: translateX(120%);
+    transition: .35s;
+}
+.toast.show { transform: translateX(0); }
+
+/* Modal */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.6);
+    display: none;
+    justify-content: center;
+    align-items: center;
+}
+.modal-card {
+    background: #fff;
+    padding: 22px;
+    border-radius: 12px;
+    max-width: 420px;
+    width: 92%;
+    border-top: 4px solid var(--eac-red);
+}
+
+/* Responsive */
+@media (max-width: 520px) {
+    .login-card { padding: 22px; }
+    .row { flex-direction: column; }
+    .brand-logo { height: 70px; }
+}

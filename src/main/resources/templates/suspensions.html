@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" 
+      th:replace="~{layout :: page(~{::title}, 'suspensions', ~{::th:block#extra-head}, ~{::.main-content}, ~{::th:block#extra-scripts})}">
+<head>
+    <title>Manage Suspensions | HR Panel</title>
+    
+    <th:block id="extra-head">
+        <link rel="stylesheet" th:href="@{/css/suspensions.css}">
+        <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+    </th:block>
+</head>
+<body>
+
+    <div class="main-content">
+        <div class="cal-header">
+            <h2 class="cal-title">Work & Class Suspensions</h2>
+            <button class="btn-view-cal" onclick="openVisualCalendar()">
+                <i class="fas fa-calendar-alt"></i> View Visual Calendar
+            </button>
+        </div>
+
+        <div class="input-card">
+            <h4 style="margin-top: 0; color: #333; margin-bottom: 20px;"><i class="fas fa-cloud-sun-rain" style="color: #d32f2f;"></i> Declare Suspension</h4>
+            <div class="grid-form">
+                <div class="form-grp">
+                    <label>Select Date</label>
+                    <input type="date" id="suspDate">
+                </div>
+                <div class="form-grp">
+                    <label>Reason / Description</label>
+                    <input type="text" id="suspReason" placeholder="e.g., Typhoon Signal No. 2">
+                </div>
+                <div class="form-grp">
+                    <label>Start Time (Optional)</label>
+                    <input type="time" id="suspTime">
+                </div>
+                <div>
+                    <button class="btn-add" id="btnAddSusp" onclick="addSuspension()"><i class="fas fa-save"></i> Save Suspension</button>
+                </div>
+            </div>
+            <p style="font-size: 12px; color: #777; margin-top: 15px; margin-bottom: 0;">* Leave 'Start Time' blank to declare a full-day suspension.</p>
+        </div>
+
+        <div class="cal-table-container">
+            <table class="cal-table">
+                <thead>
+                    <tr>
+                        <th style="width: 20%;">Date</th>
+                        <th>Suspension Reason</th>
+                        <th>Duration / Time</th>
+                        <th style="width: 15%; text-align: center;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="susp : ${suspensions}">
+                        <td><i class="fas fa-calendar-times" style="color: #64748b; margin-right: 8px;"></i> [[${#temporals.format(susp.date, 'MMMM dd, yyyy')}]]</td>
+                        <td style="font-weight: 700;" th:text="${susp.reason}">Typhoon</td>
+                        <td>
+                            <span th:if="${susp.startTime == null}" style="color: #2e7d32; background: #e8f5e9; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">Full Day</span>
+                            <span th:if="${susp.startTime != null}" style="color: #f57c00; font-weight: 600;" th:text="'Starting ' + ${#temporals.format(susp.startTime, 'h:mm a')}">Starting 1:00 PM</span>
+                        </td>
+                        <td style="text-align: center;">
+                            <button class="btn-delete" th:attr="data-id=${susp.id}" onclick="deleteSuspension(this)"><i class="fas fa-trash-alt"></i> Remove</button>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(suspensions)}">
+                        <td colspan="4" style="text-align: center; color: #888; padding: 30px;">No suspensions recorded in the database.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div id="visualCalendarModal" class="fc-modal">
+            <div class="fc-modal-content">
+                <div class="fc-modal-header">
+                    <h2><i class="fas fa-cloud-sun-rain" style="color: #d32f2f;"></i> Suspension Calendar Overview</h2>
+                    <button class="fc-close" onclick="closeVisualCalendar()">&times;</button>
+                </div>
+                <div id="calendarUI"></div>
+            </div>
+        </div>
+    </div>
+
+    <th:block id="extra-scripts">
+        <script th:inline="javascript">
+            window.suspensionEvents = [
+                /*[# th:each="susp : ${suspensions}"]*/
+                {
+                    title: /*[[${susp.reason}]]*/ 'Suspension',
+                    start: /*[[${susp.date} + ${susp.startTime != null ? 'T' + susp.startTime : ''}]]*/ '2026-01-01',
+                    color: '#d32f2f',
+                    allDay: /*[[${susp.startTime == null}]]*/ true
+                },
+                /*[/]*/
+            ];
+        </script>
+        <script th:src="@{/js/suspensions.js}"></script>
+    </th:block>
+</body>
+</html>

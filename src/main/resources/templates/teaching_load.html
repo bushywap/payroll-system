@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" 
+      th:replace="~{layout :: page(~{::title}, 'teaching_load', ~{::th:block#extra-head}, ~{::.main-content}, ~{::th:block#extra-scripts})}">
+<head>
+    <title>Teaching Load Management | HR Panel</title>
+    
+    <th:block id="extra-head">
+        <link rel="stylesheet" th:href="@{/css/teaching_load.css}">
+        <style>
+            .table-dark-red {
+                background-color: #1a1a1a;
+                color: #ffffff;
+            }
+            .table-dark-red th {
+                border-bottom: 2px solid #cc0000 !important;
+                background-color: #111111 !important;
+                color: #ffffff !important;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+            .table-dark-red td {
+                border-bottom: 1px solid #333333;
+                color: #e0e0e0;
+            }
+            .table-dark-red tbody tr:hover {
+                background-color: rgba(204, 0, 0, 0.15) !important;
+            }
+            .table-dark-red tfoot td {
+                background-color: #111111 !important;
+                color: #ffffff !important;
+                border-top: 2px solid #cc0000 !important;
+            }
+
+            /* Force left-alignment for the dynamically generated JS tables */
+            #teachingLoadViewContainer table th,
+            #teachingLoadViewContainer table td {
+                text-align: left !important;
+            }
+        </style>
+    </th:block>
+</head>
+<body>
+
+    <div class="main-content">
+        <div class="page-header">
+            <h2>Teaching Load Management</h2>
+        </div>
+
+        <div th:if="${message}" class="alert-success"><i class="fas fa-check-circle alert-icon"></i> <span th:text="${message}"></span></div>
+        <div th:if="${error}" class="alert-danger"><i class="fas fa-exclamation-circle alert-icon"></i> <span th:text="${error}"></span></div>
+
+        <div id="loadView">
+            <div class="glass-card control-panel mb-20">
+                <div class="upload-area">
+                    <form th:action="@{/teaching-pay/upload-teaching-load}" method="POST" enctype="multipart/form-data" class="upload-form">
+                        <div class="upload-title" style="color: #cc0000;">
+                            <i class="fas fa-file-excel excel-icon" style="color: #217346;"></i> Import Teaching Load
+                        </div>
+                        <input type="file" name="file" id="file" accept=".xlsx" required>
+                        <button type="submit" class="btn-red"><i class="fas fa-upload"></i> Import</button>
+                    </form>
+                </div>
+                <div class="filter-area">
+                    <div class="filter-group">
+                        <label for="departmentFilter">Department</label>
+                        <select id="departmentFilter">
+                            <option value="ALL">All Departments</option>
+                            <option th:each="dept : ${departments}" th:value="${dept.departmentName}" th:text="${dept.departmentName}"></option>
+                        </select>
+                    </div>
+                    <div class="filter-group filter-search">
+                        <label for="searchTeaching">Search Employee</label>
+                        <div class="search-wrapper">
+                            <input type="text" id="searchTeaching" placeholder="Search by ID or Name...">
+                            <button class="btn-search btn-red" id="btnSearchSubmit"><i class="fas fa-search"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card mb-20">
+                <div class="section-header">
+                    <h3 class="no-margin" style="color: #cc0000;"><i class="fas fa-building"></i> Department Rosters</h3>
+                    <button class="btn-red refresh-btn" id="btnRefreshTeachingLoad"><i class="fas fa-sync-alt"></i> Refresh</button>
+                </div>
+                <div id="teachingLoadViewContainer"></div>
+            </div>
+        </div>
+
+        <div id="instructorScheduleModal" class="modal">
+            <div class="modal-content mod-lg schedule-modal-content">
+                <span class="close-btn-dark" onclick="closeModal('instructorScheduleModal')" style="position: absolute; right: 25px; top: 20px; cursor: pointer; user-select: none; z-index: 100;">&times;</span>
+                
+                <div class="schedule-header-fixed" style="flex-shrink: 0;">
+                    <h3 style="color: #cc0000; margin-top: 0; padding-bottom: 15px; font-size: 22px;">
+                        <i class="fas fa-chalkboard-teacher"></i> Faculty Profile: <span id="scheduleModalEmpName" style="color: #1a1a1a;"></span>
+                    </h3>
+            
+                    <div class="attendance-toggle-container" style="margin-bottom: 15px; border-bottom: 2px solid #eee; padding-bottom: 10px;">
+                        <button type="button" class="btn-tab active-tab" id="btnInnerSchedule" onclick="switchInnerTab('SCHEDULE')" style="padding: 8px 15px; font-size: 13px;">
+                            <i class="fas fa-calendar-alt"></i> Active Schedule
+                        </button>
+                        <button type="button" class="btn-tab inactive-tab" id="btnInnerManage" onclick="switchInnerTab('MANAGE')" style="padding: 8px 15px; font-size: 13px;">
+                            <i class="fas fa-user-edit"></i> Manage Substitutions & Adjustments
+                        </button>
+                    </div>
+                </div>
+
+                <div id="scheduleModalContent" style="flex: 1; min-height: 0; overflow-y: auto; background-color: #ffffff; border-radius: 8px; padding-right: 10px;"></div>
+                <div id="manageModalContent" style="flex: 1; min-height: 0; overflow-y: auto; display: none; padding-right: 10px;"></div>
+            </div>
+        </div>
+
+ <div id="editLoadModal" class="modal">
+            <div class="modal-content" style="border-top: 5px solid #cc0000; padding: 30px; max-width: 600px; z-index: 9999;">
+                <span class="close-btn-dark" onclick="closeModal('editLoadModal')" style="position: absolute; right: 25px; top: 20px; font-size: 24px; cursor: pointer; user-select: none;">&times;</span>
+                <h3 style="color: #b71c1c; text-align: center; font-size: 22px; margin-bottom: 25px; margin-top: 0;">
+                    <i class="fas fa-edit"></i> Edit Teaching Load
+                </h3>
+                
+                <input type="hidden" id="editLoadId">
+                
+                <div class="edit-form-grid">
+                    <div class="input-group">
+                        <label>Number of Sections (Multiplier):</label>
+                        <input type="number" id="editSections" min="1" value="1">
+                    </div>
+                    <div class="input-group">
+                        <label>Manual Logged RLE Hours:</label>
+                        <input type="number" id="editRleHours" min="0" value="0">
+                    </div>
+                    <div class="input-group full-width">
+                        <label>Substitute Faculty Name (Exact Full Name):</label>
+                        <input type="text" id="editSubstitute" placeholder="Leave blank if none">
+                    </div>
+                    <div class="input-group">
+                        <label>Substitute Rendered Hours:</label>
+                        <input type="number" id="editSubHours" min="0" value="0">
+                    </div>
+                    <div class="input-group">
+                        <label>Date of Substitution:</label>
+                        <input type="date" id="editSubDate">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Class Type (LEC / LAB):</label>
+                        <select id="editSubjectType" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc; font-family: inherit;">
+                            <option value="" disabled selected>Select Type</option>
+                            <option value="LEC">Lecture (LEC)</option>
+                            <option value="LAB">Laboratory (LAB)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button onclick="saveTeachingLoad()" class="btn-red" style="width: 100%; margin-top: 20px; padding: 14px; font-size: 16px; border-radius: 8px;">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <th:block id="extra-scripts">
+        <script th:src="@{/js/teaching_load.js}"></script>
+    </th:block>
+</body>
+</html>

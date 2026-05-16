@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" 
+      th:replace="~{layout :: page(~{::title}, 'holidays', ~{::th:block#extra-head}, ~{::.main-content}, ~{::th:block#extra-scripts})}">
+<head>
+    <title>Manage Holidays | HR Panel</title>
+    
+    <th:block id="extra-head">
+        <link rel="stylesheet" th:href="@{/css/holidays.css}">
+        <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+        
+        <style>
+            #deleteSelectedBtn {
+                margin-bottom: 18px; 
+                padding: 10px 22px; 
+                font-weight: 600; 
+                font-family: 'Inter', sans-serif;
+                font-size: 14px;
+                color: #ffffff;
+                background: linear-gradient(135deg, #ef5350, #c62828); /* Modern red gradient */
+                border: none;
+                border-radius: 6px;
+                cursor: pointer;
+                box-shadow: 0 4px 12px rgba(198, 40, 40, 0.25);
+                transition: all 0.3s ease;
+                letter-spacing: 0.5px;
+            }
+            
+            #deleteSelectedBtn i {
+                margin-right: 6px;
+            }
+            
+            #deleteSelectedBtn:hover {
+                background: linear-gradient(135deg, #e53935, #b71c1c); /* Darkens slightly on hover */
+                box-shadow: 0 6px 16px rgba(198, 40, 40, 0.4); /* Expands the shadow */
+                transform: translateY(-2px); /* Lifts the button up slightly */
+            }
+            
+            #deleteSelectedBtn:active {
+                transform: translateY(0); /* Pushes the button back down when clicked */
+                box-shadow: 0 2px 5px rgba(198, 40, 40, 0.3);
+            }
+        </style>
+    </th:block>
+</head>
+<body>
+
+    <div class="main-content">
+        <div class="cal-header">
+            <h2 class="cal-title">Holiday Management</h2>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-view-cal" id="btnAutoImport" onclick="autoImportPHHolidays()" style="color: #27ae60; border-color: #27ae60;">
+                    <i class="fas fa-download"></i> Auto-Import PH Holidays
+                </button>
+                <button class="btn-view-cal" onclick="openVisualCalendar()">
+                    <i class="fas fa-calendar-alt"></i> View Visual Calendar
+                </button>
+            </div>
+        </div>
+
+        <div class="input-card">
+            <h4 style="margin-top: 0; color: #333; margin-bottom: 20px;"><i class="fas fa-plus-circle" style="color: #d32f2f;"></i> Add Custom/Local Holiday</h4>
+            <div class="grid-form">
+                <div class="form-grp">
+                    <label>Select Date</label>
+                    <input type="date" id="holidayDate">
+                </div>
+                <div class="form-grp">
+                    <label>Holiday Name</label>
+                    <input type="text" id="holidayName" placeholder="e.g., EAC Foundation Day">
+                </div>
+                <div class="form-grp">
+                    <label>Holiday Type</label>
+                    <select id="holidayType">
+                        <option value="REGULAR">Regular Holiday</option>
+                        <option value="SPECIAL_NON_WORKING">Special Non-Working</option>
+                    </select>
+                </div>
+                <div>
+                    <button class="btn-add" id="btnAddHoliday" onclick="addHoliday()"><i class="fas fa-save"></i> Save Holiday</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="cal-table-container">
+            <button id="deleteSelectedBtn" style="display: none;">
+                <i class="fas fa-trash"></i> Delete Selected
+            </button>
+            
+            <table class="cal-table">
+                <thead>
+                    <tr>
+                        <th style="width: 40px; text-align: center;">
+                            <input type="checkbox" id="selectAllHolidays" style="cursor: pointer; transform: scale(1.2);">
+                        </th>
+                        <th style="width: 20%;">Date</th>
+                        <th>Holiday Name</th>
+                        <th>Type</th>
+                        <th style="width: 15%; text-align: center;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="hol : ${holidays}">
+                        <td style="text-align: center;">
+                            <input type="checkbox" class="holiday-checkbox" th:value="${hol.id}" style="cursor: pointer; transform: scale(1.2);">
+                        </td>
+                        <td><i class="fas fa-calendar-day" style="color: #64748b; margin-right: 8px;"></i> [[${#temporals.format(hol.date, 'MMMM dd, yyyy')}]]</td>
+                        <td style="font-weight: 700;" th:text="${hol.name}">Independence Day</td>
+                        <td>
+                            <span th:class="${hol.type == 'REGULAR' ? 'badge-type type-regular' : 'badge-type type-special'}" th:text="${hol.type}">REGULAR</span>
+                        </td>
+                        <td style="text-align: center;">
+                            <button class="btn-delete" th:attr="data-id=${hol.id}" onclick="deleteHoliday(this)"><i class="fas fa-trash-alt"></i> Remove</button>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(holidays)}">
+                        <td colspan="5" style="text-align: center; color: #888; padding: 30px;">No holidays recorded. Click "Auto-Import" to load PH Holidays.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div id="visualCalendarModal" class="fc-modal">
+            <div class="fc-modal-content">
+                <div class="fc-modal-header">
+                    <h2><i class="fas fa-calendar-check" style="color: #d32f2f;"></i> Holiday Calendar Overview</h2>
+                    <button class="fc-close" onclick="closeVisualCalendar()">&times;</button>
+                </div>
+                <div id="calendarUI"></div>
+            </div>
+        </div>
+    </div>
+
+    <th:block id="extra-scripts">
+        <script th:inline="javascript">
+            window.holidayEvents = [
+                /*[# th:each="hol : ${holidays}"]*/
+                {
+                    title: /*[[${hol.name}]]*/ 'Holiday',
+                    start: /*[[${hol.date}]]*/ '2026-01-01',
+                    color: /*[[${hol.type == 'REGULAR' ? '#0277bd' : '#f57f17'}]]*/ '#000',
+                    allDay: true
+                },
+                /*[/]*/
+            ];
+        </script>
+        <script th:src="@{/js/holidays.js}"></script>
+    </th:block>
+</body>
+</html>

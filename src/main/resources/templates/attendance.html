@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" 
+      th:replace="~{layout :: page(~{::title}, 'attendance', ~{::th:block#extra-head}, ~{::.main-content}, ~{::th:block#extra-scripts})}">
+<head>
+    <title>Attendance Register | HR Panel</title>
+    
+    <th:block id="extra-head">
+        <link rel="stylesheet" th:href="@{/css/style_attendance.css}">
+    </th:block>
+</head>
+<body>
+
+    <div class="main-content">
+        <div class="page-header">
+            <h2>Attendance Summary</h2>
+            <div class="attendance-toggle-container" style="display: flex; align-items: center;">
+                <button type="button" th:class="${currentType == 'EMPLOYEE' ? 'btn-tab active-tab' : 'btn-tab inactive-tab'}" id="btnEmployeeAttendance">
+                    Employee Attendance
+                </button>
+                <button type="button" th:class="${currentType == 'TEACHING' ? 'btn-tab active-tab' : 'btn-tab inactive-tab'}" id="btnTeachingAttendance">
+                    Teaching Attendance
+                </button>
+            </div>
+        </div>
+
+        <input type="hidden" id="currentAttendanceType" th:value="${currentType}">
+
+        <div class="glass-card filters-panel">
+            <div class="filter-group">
+                <label for="departmentFilter">Department</label>
+                <select id="departmentFilter">
+                    <option value="ALL" th:selected="${selectedDept == 'ALL' || selectedDept == null}">All Departments</option>
+                    <option th:each="dept : ${departments}" 
+                            th:value="${dept.departmentName}" 
+                            th:text="${dept.departmentName}"
+                            th:selected="${selectedDept == dept.departmentName}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="filter-group search-group">
+                <label for="searchEmployee">Search Employee</label>
+                <div class="search-wrapper">
+                    <input type="text" id="searchEmployee" placeholder="Search by Name or ID...">
+                    <button class="btn-search" id="btnSearchSubmit" title="Search">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="filter-group date-input">
+                <label for="startDateFilter">Start Date</label>
+                <input type="date" id="startDateFilter" max="9999-12-31" th:value="${startDate}">
+            </div>
+
+            <div class="filter-group period-input">
+                <label for="periodNoFilter">Period No</label>
+                <input type="text" id="periodNoFilter" readonly th:value="${periodNo != null ? periodNo : 1}">
+            </div>
+
+            <div class="filter-group date-input">
+                <label for="endDateFilter">End Date</label>
+                <input type="date" id="endDateFilter" max="9999-12-31" th:value="${endDate}">
+            </div>
+
+            <div class="button-group">
+                <button class="btn-red" id="btnComputeAttendance">Compute Attendance</button>
+                <button class="btn-green" id="btnProceedToPayroll">Proceed to Payroll</button>
+            </div>
+        </div>
+
+        <div id="attendanceViewContainer">
+            <div class="glass-card table-responsive">
+                <table class="attendance-table" id="attendanceSummaryTable">
+                    <thead>
+                        <tr>
+                            <th>Action</th>
+                            <th>Employee ID</th>
+                            <th>Name</th>
+                            <th>LATE</th>
+                            <th>UNDERTIME</th>
+                            <th>ABSENT/TARDY</th>
+                            <th id="header-ot" th:style="${currentType == 'TEACHING' ? 'display:none;' : ''}">OT</th>
+                            <th>LEAVE (w/ Pay)</th>
+                            <th>LEAVE (w/o Pay)</th>
+                            <th>Holiday</th>
+                            <th>Suspension</th>
+                        </tr>
+                    </thead>
+                    <tbody id="attendanceSummaryBody">
+                      <tr th:each="summary : ${summaries}" class="employee-row" th:data-department="${summary.department}" th:data-search="${summary.employeeId + ' ' + #strings.toLowerCase(summary.name)}">
+                            <td>
+                                <button class="btn-gold btn-view-dtr view-daily-btn"
+                                        th:data-empid="${summary.employeeId}" 
+                                        th:data-empname="${summary.name}" 
+                                        th:data-dept="${summary.department}"
+                                        th:data-desig="${summary.designationName}"
+                                        th:data-status="${summary.employeeStatus}"
+                                        th:data-late="${summary.totalLate}" 
+                                        th:data-under="${summary.totalUndertime}" 
+                                        th:data-absent="${summary.totalAbsent}" 
+                                        th:data-ot="${summary.totalOT}" 
+                                        th:data-leavepay="${summary.totalLeaveWithPay}" 
+                                        th:data-leaveunpay="${summary.totalLeaveWithoutPay}" 
+                                        th:data-hol="${summary.totalHoliday}" 
+                                        th:data-susp="${summary.totalSuspension}">
+                                    <i class="fas fa-calendar-alt"></i> View DTR
+                                </button>
+                            </td>
+                            <td th:text="${summary.employeeId}"></td>
+                            <td th:text="${summary.name}"></td>
+                            <td th:text="${summary.totalLate}"></td>
+                            <td th:text="${summary.totalUndertime}"></td>
+                            <td th:text="${summary.totalAbsent}"></td>
+                            <td th:style="${currentType == 'TEACHING' ? 'display:none;' : ''}" class="cell-ot" th:text="${summary.totalOT}"></td>
+                            <td th:text="${summary.totalLeaveWithPay}"></td>
+                            <td th:text="${summary.totalLeaveWithoutPay}"></td>
+                            <td th:text="${summary.totalHoliday}"></td>
+                            <td th:text="${summary.totalSuspension}"></td>
+                        </tr>
+                    </tbody>
+                    <tfoot id="attendanceGrandTotal">
+                        <tr>
+                            <td colspan="3" class="grand-total-label">GRAND TOTAL:</td>
+                            <td>0</td>
+                            <td>0</td>
+                            <td>0 Days</td>
+                            <td th:style="${currentType == 'TEACHING' ? 'display:none;' : ''}">0</td>
+                            <td>0</td>
+                            <td>0</td>
+                            <td>0</td>
+                            <td>0</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+
+        <div id="dailyAttendanceModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6);">
+            <div class="modal-content dtr-modal-content" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); max-width: 850px; width: 95%; max-height: 85vh; display: flex; flex-direction: column; padding: 25px; border-top: 5px solid #b71c1c; background-color: #ffffff; border-radius: 12px; box-sizing: border-box; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+                <span class="close-btn dtr-close-btn" id="closeModalBtn" style="position: absolute; right: 20px; top: 15px; font-size: 24px; cursor: pointer; color: #555; z-index: 100;">&times;</span>
+                
+                <div class="dtr-header-fixed" style="flex-shrink: 0; text-align: center; border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 10px;">
+                    <h3 class="dtr-header-title" style="color: #b71c1c; margin-top: 0; margin-bottom: 15px; font-size: 20px;"><i class="fas fa-clock"></i> DAILY TIME RECORD</h3>
+                    
+                    <div class="dtr-emp-info" style="display: flex; flex-wrap: wrap; justify-content: space-between; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 13px; text-align: left;">
+                        <div style="flex: 1; min-width: 200px;">
+                            <div style="margin-bottom: 5px;"><strong>Employee Name:</strong> <span id="dtrEmpName" style="color: #1a237e; font-weight: 800;">----</span></div>
+                            <div style="margin-bottom: 5px;"><strong>Employee ID:</strong> <span id="dtrEmpId">----</span></div>
+                        </div>
+                        <div style="flex: 1; min-width: 200px;">
+                            <div style="margin-bottom: 5px;"><strong>Department:</strong> <span id="dtrEmpDept">----</span></div>
+                            <div style="margin-bottom: 5px;"><strong>Designation:</strong> <span id="dtrEmpDesig">----</span></div>
+                           <div style="margin-bottom: 5px;"><strong>Employee Status:</strong> <span id="dtrEmpStatus">----</span></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="table-responsive-clean dtr-table-wrapper" style="overflow-y: auto; flex: 1; border: 1px solid #e0e0e0; border-radius: 8px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);">
+                    <table class="attendance-table" id="dailyAttendanceTable" style="width: 100%; border-collapse: collapse; font-size: 12px; margin: 0;">
+                        <thead style="background-color: #f8f9fa; position: sticky; top: 0; z-index: 1;">
+                            <tr>
+                                <th rowspan="2" style="border: 1px solid #ddd; padding: 8px; text-align: center;">DATE</th>
+                                <th colspan="2" style="border: 1px solid #ddd; padding: 8px; text-align: center;">A.M.</th>
+                                <th colspan="2" style="border: 1px solid #ddd; padding: 8px; text-align: center;">P.M.</th>
+                                <th colspan="3" style="border: 1px solid #ddd; padding: 8px; text-align: center;">VARIANCES</th>
+                                <th rowspan="2" style="border: 1px solid #ddd; padding: 8px; text-align: center;">REMARKS</th>
+                            </tr>
+                            <tr>
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">ARRIVAL</th>
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">DEPARTURE</th>
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">ARRIVAL</th>
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">DEPARTURE</th>
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">LATE</th>
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">U.T.</th>
+                                <th style="border: 1px solid #ddd; padding: 8px; text-align: center;">O.T.</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dailyAttendanceBody"></tbody>
+                        <tfoot id="dailyAttendanceTotal" style="background-color: #f1f5f9; font-weight: bold; position: sticky; bottom: 0; box-shadow: 0 -2px 5px rgba(0,0,0,0.05);"></tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <th:block id="extra-scripts">
+        <script th:src="@{/js/script_attendance.js}"></script>
+    </th:block>
+
+</body>
+</html>

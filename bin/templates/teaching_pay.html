@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teaching Pay Management - Payroll System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" th:href="@{/css/style_payroll.css}">
+    <link rel="stylesheet" th:href="@{/css/sidebar.css?v=2}">
+</head>
+<body>
+
+<div th:replace="~{sidebar :: menu('teaching_pay')}"></div>
+ 
+<main class="main">
+    <div class="header-section">
+        <h1><i class="fas fa-chalkboard-teacher"></i> Teaching Pay & Overload</h1>
+        <p class="subtitle">Manage and calculate excess lecture and laboratory hours for faculty</p>
+    </div>
+
+    <div class="grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <div class="card">
+            <h3><i class="fas fa-edit"></i> Input Teaching Hours</h3>
+            
+            <div class="form-group">
+                <label for="employeeId"><i class="fas fa-user-tie"></i> Faculty ID or Name</label>
+                <input type="text" id="employeeId" placeholder="e.g., 102 or Smith" required>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div class="form-group">
+                    <label for="startDate"><i class="fas fa-calendar-alt"></i> Period Start</label>
+                    <input type="date" id="startDate">
+                </div>
+                <div class="form-group">
+                    <label for="endDate"><i class="fas fa-calendar-alt"></i> Period End</label>
+                    <input type="date" id="endDate">
+                </div>
+            </div>
+
+            <div style="background: #f1f5f9; padding: 15px; border-radius: 8px; margin-top: 15px; margin-bottom: 15px;">
+                <h4 style="margin-top: 0; color: #475569; font-size: 14px;"><i class="fas fa-clock"></i> Excess Load (Beyond 15 Units)</h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="excessLec">Excess Lec Hours</label>
+                        <input type="number" id="excessLec" placeholder="0" step="0.5">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="excessLab">Excess Lab Hours</label>
+                        <input type="number" id="excessLab" placeholder="0" step="0.5">
+                    </div>
+                </div>
+            </div>
+
+            <button id="calcTeachingBtn" type="button" onclick="previewTeachingPay()" style="background-color: #3b82f6; width: 100%; padding: 12px; font-weight: bold; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                <i class="fas fa-calculator"></i> Preview Teaching Pay
+            </button>
+        </div>
+
+        <div class="card">
+            <h3><i class="fas fa-receipt"></i> Teaching Pay Breakdown</h3>
+            <div id="teachingContent" style="background: #f8fafc; padding: 20px; border-radius: 8px; border: 1px dashed #cbd5e1;">
+                
+                <div style="text-align: center; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #e2e8f0;">
+                    <span style="font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: 1px;">Base Hourly Rate</span>
+                    <h2 id="hourlyRateDisplay" style="margin: 5px 0 0 0; color: #1e293b;">₱0.00</h2>
+                </div>
+
+                <h4 style="margin-top: 0; color: #64748b; font-size: 14px;">COMPUTATION</h4>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span>Lecture Pay (100% Rate):</span> <span id="lecPayDisplay" style="color: #10b981;">₱0.00</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span>Lab Pay (75% Rate):</span> <span id="labPayDisplay" style="color: #10b981;">₱0.00</span>
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; border-top: 2px solid #e2e8f0; padding-top: 15px; margin-top: 15px; font-size: 20px; font-weight: bold; background: #e0f2fe; padding: 15px; border-radius: 5px;">
+                    <span style="color: #0369a1;">TOTAL TEACHING PAY:</span> <span id="totalTeachingDisplay" style="color: #0369a1;">₱0.00</span>
+                </div>
+                
+                <div style="text-align: center; margin-top: 15px; font-size: 11px; color: #94a3b8;">
+                    <i class="fas fa-info-circle"></i> This amount will be automatically forwarded to Accounting for tax and gross pay consolidation.
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script th:src="@{/js/teaching_pay.js}"></script>
+</body>
+</html>

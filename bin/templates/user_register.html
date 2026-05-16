@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Payroll Portal | Register</title>
+    <link rel="stylesheet" th:href="@{/css/user_login.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <div class="login-card" style="max-width: 450px;">
+        <div class="header-text">
+            <img th:src="@{/images/eac_logo.png}" alt="Logo" class="brand-logo">
+            <h2>Create Account</h2>
+            <p>Join the System</p>
+        </div>
+
+        <form id="registerForm">
+            <div class="row">
+                <div class="field">
+                    <input type="text" id="regFirstName" placeholder=" " autocomplete="off">
+                    <label>First Name</label>
+                </div>
+                <div class="field">
+                    <input type="text" id="regLastName" placeholder=" " autocomplete="off">
+                    <label>Last Name</label>
+                </div>
+            </div>
+
+            <div class="field">
+                <input type="email" id="regEmail" placeholder=" " autocomplete="off">
+                <label>Email Address</label>
+                <i class="fa-regular fa-envelope input-icon"></i>
+            </div>
+
+            <div class="field">
+                <input type="password" id="regPassword" placeholder=" ">
+                <label>Create Password</label>
+                <i class="fa-solid fa-lock input-icon"></i> 
+            </div>
+
+            <div class="field">
+                <input type="password" id="confirmPassword" placeholder=" ">
+                <label>Confirm Password</label>
+                 <i class="fa-solid fa-lock input-icon"></i> 
+            </div>
+
+            <button type="submit" id="regBtn" class="btn-primary">
+                <span class="btn-text">Register</span>
+                <div class="loader"></div>
+            </button>
+        </form>
+        
+        <div class="footer-text" style="text-align: center; margin-top: 15px;">
+            <p>Already have an account? <a th:href="@{/login}" class="forgot-link">Sign In</a></p>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+    <script th:src="@{/js/user_register.js}"></script>
+</body>
+</html>

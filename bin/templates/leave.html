@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leave Approvals - Payroll System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" th:href="@{/css/style_leave.css}">
+<link rel="stylesheet" th:href="@{/css/sidebar.css?v=2}">
+    <style>
+        .action-btns { display: flex; gap: 5px; justify-content: center; }
+        .action-btn { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; color: white; font-size: 0.85rem; }
+        .action-btn.approve { background-color: #28a745; }
+        .action-btn.approve:hover { background-color: #218838; }
+        .action-btn.reject { background-color: #dc3545; }
+        .action-btn.reject:hover { background-color: #c82333; }
+        .status-badge { padding: 4px 8px; border-radius: 12px; font-size: 0.85em; font-weight: bold; }
+        .status-badge.pending { background-color: #ffeeba; color: #856404; }
+        .status-badge.approved { background-color: #d4edda; color: #155724; }
+        .status-badge.rejected { background-color: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{sidebar :: menu('leave')}"></div>
+
+<main class="main">
+    <div class="header-section">
+        <h1><i class="fas fa-clipboard-check"></i> Leave Approvals</h1>
+        <p class="subtitle">Review, approve, or decline employee leave requests</p>
+    </div>
+
+    <div class="card leave-types-card">
+        <h3><i class="fas fa-chart-pie"></i> Leave Request Overview</h3>
+        <div id="leaveTypesContainer" class="leave-types-grid">
+            </div>
+    </div>
+
+    <div id="formMessage" class="message" style="display:none; padding: 10px; margin-bottom: 15px; border-radius: 5px;"></div>
+
+    <div class="card table-card">
+        <h3><i class="fas fa-tasks"></i> Process Leave Requests</h3>
+        
+        <div class="filter-section">
+            <div class="form-group inline">
+                <label for="filterEmployeeId">Employee ID:</label>
+                <input type="number" id="filterEmployeeId" placeholder="Leave blank for all">
+            </div>
+            <div class="form-group inline">
+                <label for="filterStatus">Status:</label>
+                <select id="filterStatus">
+                    <option value="">All Statuses</option>
+                    <option value="Pending" selected>Pending (Needs Action)</option>
+                    <option value="Approved">Approved</option>
+                    <option value="Rejected">Rejected</option>
+                </select>
+            </div>
+            <div class="form-group inline">
+                <label for="filterLeaveType">Leave Type:</label>
+                <select id="filterLeaveType">
+                    <option value="">All Types</option>
+                </select>
+            </div>
+            <button class="btn-filter" onclick="loadLeaves()">
+                <i class="fas fa-filter"></i> Apply Filters
+            </button>
+            <button class="btn-refresh" onclick="document.getElementById('filterStatus').value='Pending'; loadLeaves();">
+                <i class="fas fa-exclamation-circle"></i> View Pending
+            </button>
+        </div>
+
+        <div class="table-container">
+            <table id="leaveTable">
+                <thead>
+                    <tr>
+                        <th>Req ID</th>
+                        <th>Emp ID</th>
+                        <th>Type</th>
+                        <th>Date Range</th>
+                        <th>Days</th>
+                        <th>Reason</th>
+                        <th>Status</th>
+                        <th>Action By</th>
+                        <th style="text-align:center;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="leaveTableBody">
+                    <tr>
+                        <td colspan="9" class="no-data" style="text-align:center;">Loading requests...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+
+<script th:src="@{/js/script_leave.js}"></script>
+
+</body>
+</html>

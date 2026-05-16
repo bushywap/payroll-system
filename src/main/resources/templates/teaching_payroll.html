@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" 
+      th:replace="~{layout :: page(~{::title}, 'teaching_payroll', ~{::th:block#extra-head}, ~{::.main-content}, ~{::th:block#extra-scripts})}">
+<head>
+    <title>Teaching Payroll Process | HR Panel</title>
+    
+    <th:block id="extra-head">
+        <meta name="context-path" th:content="@{/}" />
+        
+        <link rel="stylesheet" th:href="@{/css/teaching_load.css}">
+        <style>
+            .main-content { padding: 15px; max-width: 100vw; box-sizing: border-box; }
+            
+            .payroll-table { width: 100%; min-width: 1500px; border-collapse: collapse; table-layout: fixed; }
+            
+            .payroll-table th, .payroll-table td {
+                padding: 5px 2px; text-align: center; border-bottom: 1px solid #e2e8f0;
+                white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 12px;
+            }
+            .payroll-table th { background-color: #f8fafc; font-weight: bold; position: sticky; top: 0; z-index: 10; font-size: 11px; color: #475569;}
+            .money-col { color: #2e7d32; font-weight: 600; }
+            .gross-col { background-color: #e8f5e9; font-weight: 900; color: #b71c1c; font-size: 13px;}
+            .name-col { width: 12%; text-align: left !important; font-weight: bold; color: #1a237e; font-size: 13px; }
+            .info-btn { background: #f1f5f9; color: #475569; border: none; border-radius: 4px; width: 28px; height: 28px; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; justify-content: center; }
+            .info-btn:hover { background: #e2e8f0; color: #1e293b; }
+            .info-btn i { font-size: 14px; }
+            
+            .header-center-box {
+                text-align: center; margin: 0 auto 15px auto; padding: 20px;
+                background: #ffffff; border-top: 5px solid #b71c1c; border-bottom: 5px solid #d4af37;
+                border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); max-width: 650px;
+                box-sizing: border-box;
+            }
+            
+            .period-selector {
+                background: #f8fafc; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; 
+                display: flex; flex-direction: column; align-items: center; gap: 15px; 
+                width: 100%; box-sizing: border-box;
+            }
+
+            .filter-row {
+                display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; 
+                align-items: center; width: 100%;
+            }
+
+            .filter-item {
+                display: flex; align-items: center; gap: 8px;
+            }
+
+            .filter-label {
+                font-weight: bold; font-size: 13px; color: #555; margin: 0; white-space: nowrap;
+            }
+
+            .filter-input {
+                padding: 6px 10px; border-radius: 4px; border: 1px solid #ccc; font-size: 13px; outline: none; cursor: pointer; box-sizing: border-box;
+            }
+            
+            .dropdown-wrapper {
+                display: flex; align-items: center; gap: 10px; background: #ffffff; 
+                padding: 8px 15px; border-radius: 6px; border: 1px solid #cbd5e1; 
+                box-shadow: 0 1px 2px rgba(0,0,0,0.05); width: 100%; max-width: 400px; 
+                box-sizing: border-box;
+            }
+
+            .input-group { margin-bottom: 12px; text-align: left; }
+            .input-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 13px; color: #333; }
+            .input-group input, .input-group select, .input-group textarea { 
+                width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 14px; background-color: #f8fafc;
+            }
+            .modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+            .info-row { display: flex; justify-content: space-between; border-bottom: 1px solid #eee; padding: 10px 0; font-size: 13px;}
+            .info-row strong { color: #555; }
+            .clickable-math:hover { background-color: #e2e8f0; cursor: pointer; }
+            
+            .breakdown-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-top: 15px; }
+            .section-title { font-size: 14px; font-weight: bold; border-bottom: 2px solid; padding-bottom: 8px; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px;}
+            .earnings-col .section-title { color: #2e7d32; border-color: #2e7d32; }
+            .deductions-col .section-title { color: #c62828; border-color: #c62828; }
+            .rate-box { background: #fff3e0; padding: 12px; border-radius: 6px; margin-bottom: 15px; border-left: 4px solid #ff9800; font-size: 13px; }
+            .rate-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
+            .rate-row:last-child { margin-bottom: 0; }
+            .rate-label { color: #e65100; font-weight: bold; }
+            .rate-val { color: #e65100; font-weight: 900; }
+        </style>
+    </th:block>
+</head>
+<body>
+
+    <div class="main-content">
+        <div class="header-center-box">
+            <h2 style="margin: 0; color: #b71c1c; font-weight: 900; font-family: 'Merriweather', serif; font-size: 22px;">Emilio Aguinaldo College</h2>
+            <h3 style="margin: 5px 0 15px 0; color: #333; font-weight: 800; font-size: 16px;">TEACHING PAYROLL PROCESS</h3>
+            
+            <div class="period-selector">
+                <div class="filter-row">
+                    <div class="filter-item">
+                        <label for="filterStartDate" class="filter-label">Start:</label>
+                        <input type="date" id="filterStartDate" class="filter-input">
+                    </div>
+                    <div class="filter-item">
+                        <label for="filterEndDate" class="filter-label">End:</label>
+                        <input type="date" id="filterEndDate" class="filter-input">
+                    </div>
+                    <button onclick="resetToDefaultDates()" style="padding: 7px 15px; background: #64748b; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; transition: 0.2s; white-space: nowrap;" title="Reset to current cutoff">
+                        <i class="fas fa-undo"></i> Auto
+                    </button>
+                </div>
+
+                <div class="dropdown-wrapper">
+                    <label for="cutoffDropdown" style="font-weight: bold; font-size: 13px; color: #1e293b; margin:0; white-space: nowrap;"><i class="fas fa-list"></i> Select Cut-Off:</label>
+                    <select id="cutoffDropdown" style="flex: 1; padding: 4px; border: none; font-size: 13px; outline: none; cursor: pointer; background-color: transparent; font-weight: bold; color: #0f172a;">
+                        <option value="">-- Custom Date / Auto --</option>
+                    </select>
+                </div>
+                
+                <div id="periodBadge" style="background: #64748b; color: white; padding: 6px 20px; border-radius: 20px; font-size: 12px; font-weight: 800; letter-spacing: 0.5px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.3s ease; white-space: nowrap;">
+                    <i class="fas fa-clock"></i> Period: --- Select Dates ---
+                </div>
+            </div>
+        </div>
+    
+        <div class="glass-card" style="padding: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                <h3 style="margin:0; font-size: 16px;"><i class="fas fa-file-invoice-dollar"></i> Processed Teaching Salaries</h3>
+                
+                <div style="display: flex; gap: 12px; align-items: center;">
+                <button id="generateReportBtn" style="padding: 8px 15px; background: #0284c7; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; transition: 0.2s; white-space: nowrap;">
+        <i class="fas fa-file-excel"></i> Generate Report
+    </button>
+                    <div class="search-wrapper" style="position: relative;">
+                        <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 12px;"></i>
+                        <input type="text" id="searchProcess" placeholder="Search Employee..." style="padding: 8px 12px 8px 30px; border-radius: 20px; border: 1px solid #cbd5e1; font-size: 12px; outline: none; min-width: 250px; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05); transition: border-color 0.2s;">
+                    </div>
+                </div>
+            </div>
+            
+
+            <div style="border: 1px solid #e2e8f0; border-radius: 6px; overflow: hidden; max-width: 100%; overflow-x: auto;">
+                <table class="payroll-table" id="processTable">
+                    <thead>
+                        <tr>
+                            <th class="name-col">EMPLOYEE NAME</th>
+                            <th style="width: 4%;" title="Rates">RATE</th>
+                            <th style="width: 4%;" title="Schedule Summary">SCHED</th>
+                            <th style="width: 4%;" title="Manual Adjustments">ADJST</th>
+                            <th style="width: 4%;" title="Substitution History">SUBS</th>
+                            <th style="width: 4%;">INFO</th>
+                            
+                            <th style="width: 4%;" title="Make-Up Classes">M.U.</th>
+                            <th title="Make-Up Lecture (Hrs)">M.U. LEC</th>
+                            <th title="Make-Up Laboratory (Hrs)">M.U. LAB</th>
+                            
+                            <th title="Payable Lecture (Hrs/Units)">EXC. LEC</th>
+							<th title="Payable Laboratory (Hrs/Units)">EXC. LAB</th>
+                            <th title="Excess RLE Hours">RLE</th>
+                            <th title="SGD Hours">SGD</th>
+                            <th title="Tutorial Lecture Hours">TUT LEC</th>
+                            <th title="Tutorial Laboratory Hours">TUT LAB</th>
+                            <th>HNRM</th>
+                            <th>ADMIN</th>
+                            <th title="Total Deductions (Absent + Manual)">DED HRS <i class="fas fa-hand-pointer"></i></th>
+                            <th>SUPPLEMENTAL</th>
+                            <th>ADJ <i class="fas fa-hand-pointer"></i></th>
+                            <th>SUB PAY</th>
+                            <th class="gross-col" style="width: 9%;">GROSS PAY <i class="fas fa-hand-pointer"></i></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="p : ${payrolls}" class="process-row" 
+                            th:data-search="${#strings.toLowerCase(p.employee.firstName + ' ' + p.employee.lastName)}"
+                            th:attr="data-start=${p.periodStart}, data-end=${p.periodEnd}">
+                            <td class="name-col" th:text="${p.employee.firstName + ' ' + p.employee.lastName}"></td>
+                            
+                            <td><button class="info-btn" th:onclick="'openRatesModal(\'' + ${p.id} + '\')'" title="View Rates"><i class="fas fa-hand-holding-usd" style="color: #2e7d32;"></i></button></td>
+                            <td><button class="info-btn" th:onclick="'openScheduleSummaryModal(\'' + ${p.id} + '\')'" title="Schedule Summary"><i class="fas fa-calendar-alt" style="color: #1565c0;"></i></button></td>
+                            <td><button class="info-btn" th:onclick="'openManualAdjModal(\'' + ${p.id} + '\')'" title="Manual Adjustment"><i class="fas fa-plus-minus" style="color: #e65100;"></i></button></td>
+                            <td><button class="info-btn" th:onclick="'openSubHistoryModal(\'' + ${p.id} + '\')'" title="Substitution History"><i class="fas fa-history" style="color: #6a1b9a;"></i></button></td>
+                            
+                            <td><button class="info-btn" th:onclick="openInfoModal([[${p.hourlyRate}]], '[[${p.workloadClassification}]]', [[${p.substituteHours}]], [[${p.adjustmentHours}]], '[[${p.appliedSuspensionDates != null ? p.appliedSuspensionDates : ''}]]', [[${p.absentDeductionHours != null ? p.absentDeductionHours : 0}]])" title="View Faculty Info"><i class="fas fa-info"></i></button></td>
+                            
+                            <td><button class="info-btn" th:onclick="'openMakeUpModal(\'' + ${p.id} + '\', ' + (${p.makeUpLecHours != null ? p.makeUpLecHours : 0.0}) + ', ' + (${p.makeUpLabHours != null ? p.makeUpLabHours : 0.0}) + ')'" title="Encode Make-Up Classes"><i class="fas fa-book-medical" style="color: #0284c7;"></i></button></td>
+                            <td th:text="${p.makeUpLecHours != null ? p.makeUpLecHours : 0.0}" style="font-weight: bold; color: #1565c0;"></td>
+                            <td th:text="${p.makeUpLabHours != null ? p.makeUpLabHours : 0.0}" style="font-weight: bold; color: #e65100;"></td>
+                            
+                            <td th:text="${p.excessLecHours != null ? p.excessLecHours : 0.0}" style="font-weight: bold; color: #1565c0;"></td>
+							<td th:text="${p.excessLabHours != null ? p.excessLabHours : 0.0}" style="font-weight: bold; color: #e65100;"></td>
+                            <td th:text="${p.excessRleHours}"></td>
+                            <td th:text="${p.sgdHours}"></td>
+                            <td th:text="${p.tutorialLecHours}"></td>
+                            <td th:text="${p.tutorialLabHours}"></td>
+                            
+                            <td class="money-col" th:text="${p.honorarium != null && p.honorarium > 0 ? #numbers.formatDecimal(p.honorarium, 1, 'COMMA', 2, 'POINT') : '0.00'}"></td>
+                            <td class="money-col" th:text="${p.adminPay != null && p.adminPay > 0 ? #numbers.formatDecimal(p.adminPay, 1, 'COMMA', 2, 'POINT') : '0.00'}"></td>
+                            
+                            <td class="clickable-math" style="color: #d32f2f; font-weight: bold; text-decoration: underline;" 
+                                title="Click to view Breakdown"
+                                th:attr="data-mandh=${p.deductionHours != null ? p.deductionHours : 0.0}, 
+                                        data-absdh=${p.absentDeductionHours != null ? p.absentDeductionHours : 0.0}, 
+                                        data-empname=${p.employee.firstName + ' ' + p.employee.lastName}"
+                                onclick="openDedHrsBreakdown(this)">
+                                <span th:text="${(p.deductionHours != null ? p.deductionHours : 0.0) + (p.absentDeductionHours != null ? p.absentDeductionHours : 0.0)}"></span>
+                                <i th:if="${p.absentDeductionHours != null && p.absentDeductionHours > 0}" class="fas fa-exclamation-circle" style="color: #e65100; margin-left: 4px;" title="Contains Absence/No Time-In Penalties"></i>
+                            </td>
+                            
+                            <td class="money-col" th:text="${p.supplementalPay != null && p.supplementalPay > 0 ? #numbers.formatDecimal(p.supplementalPay, 1, 'COMMA', 2, 'POINT') : '0.00'}"></td>
+                            
+                            <td class="money-col clickable-math" 
+                                style="color: #1565c0; text-decoration: underline;" 
+                                th:title="${p.adjustmentRemarks != null && !p.adjustmentRemarks.isEmpty() ? p.adjustmentRemarks : 'View Adjustment History'}"
+                                th:attr="data-id=${p.id}, data-empname=${p.employee.firstName + ' ' + p.employee.lastName}"
+                                onclick="openAdjHistoryModal(this)" 
+                                th:text="${p.totalAdjustmentPay != null ? #numbers.formatDecimal(p.totalAdjustmentPay, 1, 'COMMA', 2, 'POINT') : '0.00'}">
+                            </td>
+                            
+                            <td class="money-col" style="color:#e65100;" th:text="${p.substitutePay != null && p.substitutePay > 0 ? #numbers.formatDecimal(p.substitutePay, 1, 'COMMA', 2, 'POINT') : '0.00'}"></td>
+                            
+                            <td class="gross-col clickable-math" title="Click to view exact math breakdown"
+							    th:attr="data-emp=${p.employee.firstName + ' ' + p.employee.lastName},
+							            data-class=${p.workloadClassification},
+							            data-totallec=${p.totalLecHours != null ? p.totalLecHours : 0.0},
+							            data-exclec=${p.excessLecHours != null ? p.excessLecHours : 0.0},
+							            data-totallab=${p.totalLabHours != null ? p.totalLabHours : 0.0},
+							            data-exclab=${p.excessLabHours != null ? p.excessLabHours : 0.0},
+							            data-lecpay=${p.lecPay}, data-labpay=${p.labPay}, data-rlepay=${p.rlePay}, 
+							            data-subpay=${p.substitutePay}, data-sgdpay=${p.sgdPay}, data-tutlecpay=${p.tutorialLecPay}, 
+							            data-tutlabpay=${p.tutorialLabPay}, data-adminpay=${p.adminPay}, data-honorarium=${p.honorarium}, 
+							            data-supp=${p.supplementalPay}, data-adj=${p.totalAdjustmentPay}, data-hol=${p.holidayPay},
+							            data-makeuppay=${p.makeUpPay != null ? p.makeUpPay : 0.0},
+							            data-makeuplec=${p.makeUpLecHours != null ? p.makeUpLecHours : 0.0}, data-makeuplab=${p.makeUpLabHours != null ? p.makeUpLabHours : 0.0}, data-rate=${p.hourlyRate}, 
+							            data-absentpay=${p.absentDeductionPay}, data-absenthrs=${p.absentDeductionHours != null ? p.absentDeductionHours : 0.0}, 
+							            data-mandedhrs=${p.deductionHours != null ? p.deductionHours : 0.0}, 
+							            data-susp=${p.suspensionDeduction}, 
+							            data-suspdates=${p.appliedSuspensionDates != null ? p.appliedSuspensionDates : ''},
+							            data-susprate=${p.suspensionDeduction},
+							            data-gross=${p.totalTeachingPay}"
+							    onclick="openMathBreakdown(this)">
+							    ₱<span th:text="${p.totalTeachingPay != null ? #numbers.formatDecimal(p.totalTeachingPay, 1, 'COMMA', 2, 'POINT') : '0.00'}"></span>
+							</td>
+		                 </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        
+
+        <div id="makeUpModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6);">
+            <div class="modal-content" style="max-width: 400px; margin: 15vh auto; padding: 30px; border-top: 5px solid #0284c7; background-color: #ffffff; border-radius: 12px; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+                <span class="close-btn" onclick="closeModal('makeUpModal')" style="position: absolute; right: 20px; top: 15px; font-size: 24px; cursor: pointer; color: #555;">&times;</span>
+                <h3 style="color: #0284c7; margin-top: 0; text-align: center;"><i class="fas fa-book-medical"></i> Encode Make-Up Classes</h3>
+                
+                <input type="hidden" id="makeUpPayId">
+                
+                <div class="input-group" style="margin-top: 20px;">
+                    <label>Make-Up Lec Hours:</label>
+                    <input type="number" id="lecHoursInput" step="0.5" min="0" placeholder="0.0">
+                </div>
+                
+                <div class="input-group">
+                    <label>Make-Up Lab Hours:</label>
+                    <input type="number" id="labHoursInput" step="0.5" min="0" placeholder="0.0">
+                </div>
+                
+                <button onclick="saveMakeUpHours()" style="width: 100%; margin-top: 20px; padding: 12px; background-color: #0284c7; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px;">
+                    <i class="fas fa-save"></i> Save Make-Up Hours
+                </button>
+            </div>
+        </div>
+
+        <div id="dedHrsModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6);">
+            <div class="modal-content" style="max-width: 400px; margin: 15vh auto; padding: 30px; border-top: 5px solid #d32f2f; background-color: #ffffff; border-radius: 12px; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+                <span class="close-btn" onclick="closeModal('dedHrsModal')" style="position: absolute; right: 20px; top: 15px; font-size: 24px; cursor: pointer; color: #555;">&times;</span>
+                <h3 style="color: #d32f2f; text-align: center; margin-top:0;"><i class="fas fa-user-clock"></i> Deduction Hrs Breakdown</h3>
+                <p style="text-align: center; color: #1a237e; font-weight: 800; font-size: 15px; margin-bottom: 20px;" id="dhEmpName">---</p>
+                
+                <div style="background: #fff5f5; padding: 15px; border-radius: 8px; border: 1px solid #ffebee;">
+                    <div class="info-row"><strong>Manual Deduction:</strong> <span id="dhManHrs" style="color:#d32f2f; font-weight:bold;">0.00 Hrs</span></div>
+                    <div class="info-row"><strong>Substitution / Absent:</strong> <span id="dhAbsHrs" style="color:#d32f2f; font-weight:bold;">0.00 Hrs</span></div>
+                    <hr style="border: 0; border-top: 1px dashed #ef9a9a; margin: 15px 0;">
+                    <div class="info-row" style="font-size: 16px;">
+                        <strong style="color: #c62828;">TOTAL DEDUCTION HRS:</strong> 
+                        <span id="dhTotalHrs" style="color: #c62828; font-weight: 900;">0.00 Hrs</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="adjHistoryModal" class="modal" style="display: none; position: fixed; z-index: 99999; left: 0; top: 0; width: 100vw; height: 100vh; background-color: rgba(0,0,0,0.6); align-items: center; justify-content: center;">
+            <div class="modal-content" style="width: 100%; max-width: 500px; padding: 30px; border-top: 5px solid #1565c0; background-color: #ffffff; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); position: relative; margin: 0;">
+                <span class="close-btn" onclick="closeModal('adjHistoryModal')" style="position: absolute; right: 20px; top: 15px; cursor: pointer; font-size: 24px; color: #555; font-weight: bold;">&times;</span>
+                <h3 style="color: #1565c0; margin-top: 0; text-align: center;"><i class="fas fa-list-alt"></i> Adjustment History</h3>
+                <p style="text-align: center; color: #1a237e; font-weight: 800; font-size: 15px; margin-bottom: 20px;" id="adjHistEmpName">---</p>
+                
+                <div id="adjHistoryList" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 15px; max-height: 350px; overflow-y: auto; text-align: left;">
+                    </div>
+            </div>
+        </div>
+
+        <div id="mathBreakdownModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6);">
+            <div class="modal-content" style="max-width: 650px; margin: 5vh auto; padding: 30px; border-top: 6px solid #2e7d32; background-color: #ffffff; border-radius: 12px; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+                <span class="close-btn" onclick="closeModal('mathBreakdownModal')" style="position: absolute; right: 20px; top: 15px; font-size: 24px; cursor: pointer; color: #555;">&times;</span>
+                
+                <h3 style="color: #2e7d32; text-align: center; margin-top:0; font-size: 20px;"><i class="fas fa-file-invoice-dollar"></i> Teaching Pay Breakdown</h3>
+                <p style="text-align: center; color: #1a237e; font-weight: 800; font-size: 16px; margin-bottom: 20px;" id="mbEmpName">---</p>
+                
+                <div class="breakdown-grid">
+                    <div class="earnings-col">
+                        <div class="section-title">Earnings & Additions</div>
+                        
+                        <div class="info-row" style="flex-direction: column; gap: 4px; border-bottom: 1px dashed #c8e6c9; padding-bottom: 10px;">
+                            <div style="display: flex; justify-content: space-between;">
+                                <strong>Lecture Pay</strong>
+                                <span id="mbLec" style="color:#2e7d32; font-weight: bold;">₱0.00</span>
+                            </div>
+                            <span id="mbLecText" style="color:#666; font-size: 0.85em; font-style: italic;">---</span>
+                        </div>
+                        <div class="info-row" style="flex-direction: column; gap: 4px; border-bottom: 1px dashed #c8e6c9; padding-bottom: 10px;">
+                            <div style="display: flex; justify-content: space-between;">
+                                <strong>Laboratory Pay</strong>
+                                <span id="mbLab" style="color:#2e7d32; font-weight: bold;">₱0.00</span>
+                            </div>
+                            <span id="mbLabText" style="color:#666; font-size: 0.85em; font-style: italic;">---</span>
+                        </div>
+                        
+                        <div class="info-row"><strong>RLE Excess Pay:</strong> <span id="mbRle" style="color:#2e7d32;">₱0.00</span></div>
+                        <div class="info-row"><strong>Make-Up Pay:</strong> <span id="mbMakeUp" style="color:#0284c7; font-weight:bold;">₱0.00</span></div>
+                        <div class="info-row"><strong>Substitute Pay:</strong> <span id="mbSub" style="color:#e65100;">₱0.00</span></div>
+                        <div class="info-row"><strong>SGD Pay:</strong> <span id="mbSgd" style="color:#2e7d32;">₱0.00</span></div>
+                        <div class="info-row"><strong>Tutorial Pay:</strong> <span id="mbTut" style="color:#2e7d32;">₱0.00</span></div>
+                        <div class="info-row"><strong>Admin / Basic Pay:</strong> <span id="mbAdmin" style="color:#2e7d32;">₱0.00</span></div>
+                        <div class="info-row"><strong>Honorarium:</strong> <span id="mbHon" style="color:#2e7d32;">₱0.00</span></div>
+                        <div class="info-row"><strong>Supplemental:</strong> <span id="mbSupp" style="color:#2e7d32;">₱0.00</span></div>
+                        <div class="info-row"><strong>Holiday Pay:</strong> <span id="mbHol" style="color:#2e7d32;">₱0.00</span></div>
+                        <div class="info-row" style="background:#f1f8e9; padding:5px; border-radius:4px;"><strong>Adjustments (+):</strong> <span id="mbAdj" style="color:#2e7d32; font-weight:bold;">₱0.00</span></div>
+                    </div>
+
+                    <div class="deductions-col">
+                        <div class="section-title" style="color:#e65100; border-color:#e65100;">Rate Information</div>
+                        <div class="rate-box">
+						    <div class="rate-row">
+						        <span class="rate-label">Base Hourly Rate:</span>
+						        <span class="rate-val">₱<span id="mbBaseRate">0.00</span></span>
+						    </div>
+						    <div class="rate-row" style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #ffcc80;">
+						        <span class="rate-label">Sub. Ded. Rate:</span>
+						        <span class="rate-val">₱<span id="mbSubRateVal">0.00</span> / hr</span>
+						    </div>
+						    <div class="rate-row" style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #ffcc80;">
+						        <span class="rate-label">Suspension Amount:</span>
+						        <span class="rate-val">₱<span id="mbSuspRateVal">0.00</span></span>
+						    </div>
+						    
+						    <div class="rate-row" style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #ffcc80;">
+						        <span class="rate-label">Manual Ded. Rate:</span>
+						        <span class="rate-val">₱<span id="mbManDedRateVal">0.00</span> / hr</span>
+						    </div>
+						</div>
+
+                        <div class="section-title">Deductions</div>
+                        <div class="info-row"><strong>Abs/Sub Ded (<span id="mbSubHrs">0</span> hrs):</strong> <span id="mbSubDed" style="color:#d32f2f;">- ₱0.00</span></div>
+                        <div class="info-row"><strong>Manual Ded (<span id="mbManHrs">0</span> hrs):</strong> <span id="mbDed" style="color:#d32f2f;">- ₱0.00</span></div>
+                        
+                        <div class="info-row">
+                            <strong>Suspension Ded (<span id="mbSuspDates" style="font-size: 10px;">Dates</span>):</strong> 
+                            <span id="mbSusp" style="color:#d32f2f;">- ₱0.00</span>
+                        </div>
+                        
+                        <div style="background-color: #ffebee; padding: 12px; border-radius: 6px; margin-top: 15px; border: 1px solid #ef9a9a; display: flex; justify-content: space-between;">
+                            <strong style="color: #c62828;">TOTAL DEDUCTIONS:</strong> 
+                            <span id="mbTotalDed" style="color: #c62828; font-weight: 900; font-size: 14px;">- ₱0.00</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="background: #e8f5e9; padding: 15px 25px; border-radius: 8px; margin-top: 25px; display: flex; justify-content: space-between; align-items: center; border: 2px solid #4caf50;">
+                    <span style="font-size: 16px; color: #2e7d32; font-weight: 800; text-transform: uppercase;">Final Gross Pay</span>
+                    <span id="mbGross" style="font-size: 26px; color: #1b5e20; font-weight: 900; letter-spacing: 1px;">₱0.00</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="infoModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6);">
+            <div class="modal-content" style="max-width: 400px; margin: 15vh auto; padding: 40px 35px; border-top: 5px solid #1565c0; background-color: #ffffff; border-radius: 12px; position: relative;">
+                <span class="close-btn" onclick="closeModal('infoModal')" style="position: absolute; right: 20px; top: 15px; font-size: 24px; cursor: pointer;">&times;</span>
+                <h3 style="color: #1565c0; text-align: center; margin-top:0;"><i class="fas fa-id-badge"></i> Faculty Details</h3>
+                <div style="margin-top: 25px;">
+                    <div class="info-row"><strong>Hourly Rate:</strong> <span id="infoRate" style="color: #2e7d32; font-weight:bold;">---</span></div>
+                    <div class="info-row"><strong>Class / Sched:</strong> <span id="infoSched" style="background: #e3f2fd; padding: 4px 10px; border-radius: 6px; font-size: 13px; font-weight: bold; color: #1565c0;">---</span></div>
+                    <div class="info-row"><strong>Substitute (Hrs):</strong> <span id="infoSub" style="color: #e65100; font-weight:bold;">---</span></div>
+                    <div class="info-row"><strong>Adjustment (Hrs):</strong> <span id="infoAdj" style="font-weight:bold;">---</span></div>
+                    <div class="info-row"><strong>Suspended Dates:</strong> <span id="infoSusp" style="color: #c62828; font-weight:bold; font-size:11px;">---</span></div>
+                    
+                    <div class="info-row" id="infoAbsenceWarningRow" style="display:none; background-color: #fff3e0; padding: 5px; border-radius: 4px; border: 1px solid #ffcc80; margin-top: 10px;">
+                        <strong style="color: #e65100;"><i class="fas fa-exclamation-triangle"></i> Missing Attendance:</strong> 
+                        <span id="infoAbsence" style="color: #d32f2f; font-weight:bold; float: right;">---</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="ratesModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6);">
+            <div class="modal-content" style="max-width: 400px; margin: 15vh auto; padding: 30px; border-top: 5px solid #2e7d32; background-color: #ffffff; border-radius: 12px;">
+                <span class="close-btn" onclick="closeModal('ratesModal')" style="float: right; cursor: pointer; font-size: 24px;">&times;</span>
+                <h3 style="color: #2e7d32; margin-top: 0;"><i class="fas fa-hand-holding-usd"></i> Rates</h3>
+                <div id="ratesContent" style="margin-top: 20px;"></div>
+            </div>
+        </div>
+
+        <div id="scheduleSummaryModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); overflow-y: auto;">
+            <div class="modal-content" style="margin: 10vh auto; position: relative; max-width: 650px; width: 90%; max-height: 80vh; overflow-y: auto; padding: 25px; border-top: 5px solid #1565c0; background-color: #ffffff; border-radius: 12px; box-sizing: border-box; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+                <span class="close-btn" onclick="closeModal('scheduleSummaryModal')" style="position: absolute; right: 20px; top: 15px; cursor: pointer; font-size: 24px;">&times;</span>
+                <h3 style="color: #1565c0; margin-top: 0; font-size: 18px;"><i class="fas fa-calendar-alt"></i> Schedule Workload</h3>
+                <div id="scheduleSummaryContent" style="margin-top: 15px;"></div>
+            </div>
+        </div>
+
+        <div id="manualAdjModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6);">
+            <div class="modal-content" style="max-width: 450px; margin: 10vh auto; padding: 35px; border-top: 5px solid #e65100; background-color: #ffffff; border-radius: 12px;">
+                <span class="close-btn" onclick="closeModal('manualAdjModal')" style="float: right; cursor: pointer; font-size: 24px;">&times;</span>
+                <h3 style="color: #e65100; margin-top: 0;"><i class="fas fa-plus-minus"></i> Adjustment</h3>
+                
+                <div style="background: #f8fafc; padding: 12px; border-radius: 6px; margin-bottom: 20px; font-size: 14px;">
+                    <div style="margin-bottom: 5px;"><strong>Emp ID:</strong> <span id="adjEmpId">---</span></div>
+                    <div><strong>Name:</strong> <span id="adjEmpName">---</span></div>
+                </div>
+
+                <input type="hidden" id="adjPayId">
+                <div class="input-group">
+                    <label>Adjustment Type:</label>
+                    <select id="adjType">
+                        <option value="INCOME">Income / Addition (+)</option>
+                        <option value="DEDUCTION">Deduction / Penalty (-)</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Amount (₱):</label>
+                    <input type="number" id="adjAmount" step="0.01" placeholder="0.00">
+                </div>
+                <div class="input-group">
+                    <label>Remarks / Description:</label>
+                    <textarea id="adjRemarks" rows="3" placeholder="Enter reason for adjustment..."></textarea>
+                </div>
+                
+                <button onclick="saveManualAdjustment()" class="btn-gold" style="width: 100%; margin-top: 15px; padding: 12px;">
+                    <i class="fas fa-save"></i> Post Adjustment
+                </button>
+            </div>
+        </div>
+
+        <div id="subHistoryModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6);">
+            <div class="modal-content" style="max-width: 500px; margin: 10vh auto; padding: 30px; border-top: 5px solid #6a1b9a; background-color: #ffffff; border-radius: 12px;">
+                <span class="close-btn" onclick="closeModal('subHistoryModal')" style="float: right; cursor: pointer; font-size: 24px;">&times;</span>
+                <h3 style="color: #6a1b9a; margin-top: 0;"><i class="fas fa-history"></i> Substitution History</h3>
+                
+                <div style="margin-top: 20px;">
+                    <div style="margin-bottom: 20px;">
+                        <h4 style="color: #333; margin-bottom: 10px; font-size: 15px; border-bottom: 1px solid #eee; padding-bottom: 5px;">Classes Covered (As Substitute)</h4>
+                        <ul id="subAsSubstituteList" style="font-size: 13px; padding-left: 20px; color: #555;"></ul>
+                    </div>
+                    <div>
+                        <h4 style="color: #333; margin-bottom: 10px; font-size: 15px; border-bottom: 1px solid #eee; padding-bottom: 5px;">Classes Relieved (By Substitute)</h4>
+                        <ul id="subWhenAbsentList" style="font-size: 13px; padding-left: 20px; color: #555;"></ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    
+
+<th:block id="extra-scripts">
+    <script th:src="@{/js/teaching_payroll.js(v=17)}"></script>
+</th:block>
+</body>
+</html>

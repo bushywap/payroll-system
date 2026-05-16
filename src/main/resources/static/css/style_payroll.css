@@ -1,0 +1,129 @@
+/* =========================================
+   PAYROLL REGISTER TABLE STYLES
+========================================= */
+.main-content { max-width: 100% !important; padding: 15px !important; margin: 0 !important; box-sizing: border-box; }
+
+.custom-table { width: 100%; border-collapse: collapse; font-family: 'Inter', sans-serif; white-space: nowrap; }
+.custom-table thead th { padding: 5px 2px; font-size: 9.5px; font-weight: 800; border-bottom: 2px solid #111; position: sticky; top: 0; background: #f8fafc; z-index: 5; text-align: center; border-right: 1px solid #ddd;}
+.custom-table tbody td, .custom-table tbody th { padding: 4px 2px; font-size: 10.5px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #eee; vertical-align: middle; }
+
+.text-left { text-align: left !important; }
+.text-right { text-align: right !important; }
+.text-center { text-align: center !important; }
+
+.clickable-cell { cursor: pointer; text-decoration: underline; font-weight: 800; }
+.clickable-cell:hover { opacity: 0.7; }
+.val-bold { font-weight: 800; }
+
+.col-teach { color: #8b5cf6; }
+.col-earn { color: #0284c7; }
+.col-ded { color: #dc2626; }
+.col-penalties { color: #ea580c; }
+.col-oth-income { color: #0284c7; }
+.col-net { color: #059669; font-weight: 900; font-size: 11.5px; }
+
+.dept-title-row td { background-color: #e2e8f0; font-weight: 800; font-size: 12px; color: #1e293b; padding: 6px 10px !important; text-transform: uppercase; border-top: 2px solid #ccc; }
+.dept-header-repeat th { background-color: #f8fafc; font-size: 8.5px; color: #64748b; font-weight: 800; text-transform: uppercase; text-align: center; padding: 4px 2px; }
+.dept-subtotal-row td { background-color: #f1f5f9; font-weight: 800; border-top: 1px dashed #94a3b8; }
+
+.custom-table tfoot td { padding: 8px 4px; font-size: 11px; font-weight: 900; background-color: #8b0000; color: #ffffff; border-right: 1px solid #a72828; text-align: right;}
+.custom-table tfoot td.col-net { background-color: #059669 !important; color: #ffffff !important; font-size: 13px !important; }
+
+/* =========================================
+   MODAL COMPONENT STYLES
+========================================= */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 99999;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0,0,0,0.6);
+    align-items: center; 
+    justify-content: center;
+}
+
+.mod-sm, .mod-md, .mod-lg {
+    /* Absolute centering to fix the "stuck at top" bug */
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    margin: 0;
+    max-height: 90vh; 
+    overflow-y: auto; 
+    background-color: #fff;
+    border-radius: 8px;
+    box-sizing: border-box;
+}
+
+.mod-sm { max-width: 450px; width: 90%; padding: 0; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+.mod-md { max-width: 580px; width: 90%; padding: 0; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+.mod-lg { max-width: 600px; width: 90%; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); font-family: 'Inter', sans-serif; }
+
+/* Modal Theme Borders */
+.border-blue { border-top: 5px solid #0369a1; }
+.border-red { border-top: 5px solid #d32f2f; }
+.border-orange { border-top: 5px solid #ea580c; }
+.border-green { border-top: 5px solid #059669; }
+.border-darkred { border-top: 5px solid #b71c1c; }
+
+/* Modal Headers */
+.mod-header { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+.mod-header-blue { background-color: #0284c7; color: white; border-radius: 8px 8px 0 0; }
+.mod-header-light { border-bottom: 1px solid #eee; background-color: #f8fafc; }
+.mod-header h3 { margin: 0; font-size: 18px; }
+.mod-header-light h3.text-blue { color: #0369a1; }
+.mod-header-light h3.text-orange { color: #ea580c; }
+.mod-header-light h3.text-red { color: #d32f2f; }
+.mod-header-light h3.text-green { color: #059669; }
+
+/* Modal Close Buttons */
+.close-btn-white { color: white; font-size: 24px; font-weight: bold; cursor: pointer; }
+.close-btn-dark { position: relative; top: 0; right: 0; font-size: 24px; cursor: pointer; color: #666; font-weight: bold; line-height: 1; }
+.close-btn-dark:hover { color: #000; }
+.close-btn-abs { position: absolute; right: 20px; top: 15px; font-size: 24px; cursor: pointer; color: #666; font-weight: bold; line-height: 1; }
+
+/* Modal Body & Info Boxes */
+.mod-body { padding: 20px; }
+.info-box { border-radius: 6px; padding: 12px; margin-bottom: 15px; font-size: 0.9rem; }
+.info-box-blue { border: 1px solid #bae6fd; background-color: #f0f9ff; }
+.info-box-orange { border: 1px solid #fdba74; background-color: #fff7ed; }
+.info-box-red { border: 1px solid #fca5a5; background-color: #fef2f2; }
+.info-box-green { border: 1px solid #86efac; background-color: #f0fdf4; }
+.info-label { color: #666; font-weight: bold; margin-right: 5px; }
+
+/* Data Tables Inside Modals */
+.mod-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.mod-table th { padding: 10px 8px; font-weight: bold; background: white; border-bottom: 2px solid #ddd; text-align: right; }
+.mod-table th.text-left { text-align: left; }
+.mod-table td { padding: 10px 8px; border-bottom: 1px solid #f1f5f9; }
+.mod-table td.label-cell { font-weight: 600; color: #334155; }
+.mod-table td.formula-cell { color: #666; font-size: 12px; text-align: right; }
+.mod-table td.val-cell { text-align: right; font-weight: bold; font-family: monospace; font-size: 15px; }
+
+/* Table Value Colors */
+.text-blue { color: #0284c7; }
+.text-orange { color: #ea580c; }
+.text-red { color: #d32f2f; }
+.text-green { color: #059669; }
+
+/* Table Footers */
+.mod-table tfoot td { padding: 15px 8px; font-weight: 900; text-align: right; }
+.foot-blue { background-color: #e0f2fe; color: #0369a1; border-top: 2px solid #0284c7; }
+.foot-orange { background-color: #fff7ed; color: #c2410c; border-top: 2px solid #ea580c; }
+.foot-red { background-color: #fef2f2; color: #b71c1c; border-top: 2px solid #d32f2f; }
+.foot-green { background-color: #ecfdf5; color: #065f46; border-top: 2px solid #059669; }
+
+/* Teaching Pay Modal Specifics */
+.teach-title { margin: 0 0 5px 0; color: #b71c1c; font-weight: 900; font-size: 22px; line-height: 1.2; text-align: center;}
+.teach-name-badge { font-size: 14px; background: #f8f9fa; display: inline-block; padding: 6px 15px; border-radius: 20px; border: 1px solid #ddd; font-weight: bold; color: #333; margin-top: 10px; }
+.teach-summary-container { background-color: #f0f4f8; padding: 15px; border-radius: 8px; margin-bottom: 20px; box-sizing: border-box; }
+.teach-summary-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; font-size: 13px; }
+.teach-grid-box { background: #fff; padding: 10px; border-radius: 6px; border: 1px solid #cfd8dc; text-align: center; }
+.teach-grid-title { color: #666; margin-bottom: 5px; font-size: 11px; text-transform: uppercase; font-weight: 800; }
+.teach-grid-sub { font-size: 11px; color: #888; }
+.teach-table-container { background-color: #ffffff; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; }
+.teach-table-header { background-color: #e3f2fd; color: #1565c0; border-bottom: 2px solid #90caf9; }

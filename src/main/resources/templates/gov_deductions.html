@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" 
+      th:replace="~{layout :: page(~{::title}, 'gov_deductions', ~{::th:block#extra-head}, ~{::.main-content}, ~{::th:block#extra-scripts})}">
+<head>
+    <title>Government Deductions Matrix | HR Panel</title>
+    
+    <th:block id="extra-head">
+        <style>
+            .dashboard-cards { display: grid; gap: 20px; }
+            .glass-card { background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+            .table-responsive { max-height: 500px; overflow-y: auto; border: 1px solid #eee; border-radius: 8px; }
+            .custom-table { width: 100%; border-collapse: collapse; font-size: 14px; text-align: left; }
+            .custom-table th, .custom-table td { padding: 12px 15px; border-bottom: 1px solid #ddd; }
+            .custom-table th { background-color: #1a1a1a; color: white; position: sticky; top: 0; z-index: 10; }
+            .custom-table tbody tr:hover { background-color: #f9f9f9; }
+        </style>
+    </th:block>
+</head>
+<body>
+
+    <div class="main-content">
+        <h2 style="color: #b71c1c; margin-top: 0; margin-bottom: 5px;"><i class="fas fa-landmark"></i> Government Deductions Matrix (2024)</h2>
+        <p style="color: #666; margin-bottom: 25px;">Reference tables for statutory contributions based on standard dynamic calculations.</p>
+
+        <div class="dashboard-cards" style="grid-template-columns: 1fr;">
+            <div class="glass-card" style="padding: 25px;">
+                <h3 style="color: #b71c1c; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px;">
+                    <i class="fas fa-shield-alt"></i> SSS Contribution Schedule (Official Limits)
+                </h3>
+                <p style="font-size: 14px; color: #555; margin-bottom: 15px;">
+                    <strong>Rule applied:</strong> Dynamic rounding to nearest ₱500 MSC. Minimum MSC: ₱5,000. Maximum MSC: ₱35,000. Rate: 15% (Employee 5%, Employer 10%).
+                </p>
+                <div class="table-responsive">
+                    <table class="custom-table" id="sssTable">
+                        <thead>
+                            <tr>
+                                <th>Range of Compensation</th>
+                                <th>Monthly Salary Credit (MSC)</th>
+                                <th>Employer Share (10%)</th>
+                                <th>Employee Share (5%)</th>
+                                <th>Total Contribution (15%)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>Below ₱5,250.00</td><td style="font-weight: bold;">₱5,000.00</td><td>₱500.00</td><td style="color: #b71c1c; font-weight: bold;">₱250.00</td><td>₱750.00</td></tr>
+                            <tr><td>₱5,250.00 - ₱5,749.99</td><td style="font-weight: bold;">₱5,500.00</td><td>₱550.00</td><td style="color: #b71c1c; font-weight: bold;">₱275.00</td><td>₱825.00</td></tr>
+                            <tr><td>₱5,750.00 - ₱6,249.99</td><td style="font-weight: bold;">₱6,000.00</td><td>₱600.00</td><td style="color: #b71c1c; font-weight: bold;">₱300.00</td><td>₱900.00</td></tr>
+                            <tr><td>₱6,250.00 - ₱6,749.99</td><td style="font-weight: bold;">₱6,500.00</td><td>₱650.00</td><td style="color: #b71c1c; font-weight: bold;">₱325.00</td><td>₱975.00</td></tr>
+                            <tr><td>₱6,750.00 - ₱7,249.99</td><td style="font-weight: bold;">₱7,000.00</td><td>₱700.00</td><td style="color: #b71c1c; font-weight: bold;">₱350.00</td><td>₱1,050.00</td></tr>
+                            <tr><td>₱7,250.00 - ₱7,749.99</td><td style="font-weight: bold;">₱7,500.00</td><td>₱750.00</td><td style="color: #b71c1c; font-weight: bold;">₱375.00</td><td>₱1,125.00</td></tr>
+                            <tr><td>₱7,750.00 - ₱8,249.99</td><td style="font-weight: bold;">₱8,000.00</td><td>₱800.00</td><td style="color: #b71c1c; font-weight: bold;">₱400.00</td><td>₱1,200.00</td></tr>
+                            <tr><td>₱8,250.00 - ₱8,749.99</td><td style="font-weight: bold;">₱8,500.00</td><td>₱850.00</td><td style="color: #b71c1c; font-weight: bold;">₱425.00</td><td>₱1,275.00</td></tr>
+                            <tr><td>₱8,750.00 - ₱9,249.99</td><td style="font-weight: bold;">₱9,000.00</td><td>₱900.00</td><td style="color: #b71c1c; font-weight: bold;">₱450.00</td><td>₱1,350.00</td></tr>
+                            <tr><td>₱9,250.00 - ₱9,749.99</td><td style="font-weight: bold;">₱9,500.00</td><td>₱950.00</td><td style="color: #b71c1c; font-weight: bold;">₱475.00</td><td>₱1,425.00</td></tr>
+                            <tr><td>₱9,750.00 - ₱10,249.99</td><td style="font-weight: bold;">₱10,000.00</td><td>₱1,000.00</td><td style="color: #b71c1c; font-weight: bold;">₱500.00</td><td>₱1,500.00</td></tr>
+                            <tr><td>₱10,250.00 - ₱10,749.99</td><td style="font-weight: bold;">₱10,500.00</td><td>₱1,050.00</td><td style="color: #b71c1c; font-weight: bold;">₱525.00</td><td>₱1,575.00</td></tr>
+                            <tr><td>₱10,750.00 - ₱11,249.99</td><td style="font-weight: bold;">₱11,000.00</td><td>₱1,100.00</td><td style="color: #b71c1c; font-weight: bold;">₱550.00</td><td>₱1,650.00</td></tr>
+                            <tr><td>₱11,250.00 - ₱11,749.99</td><td style="font-weight: bold;">₱11,500.00</td><td>₱1,150.00</td><td style="color: #b71c1c; font-weight: bold;">₱575.00</td><td>₱1,725.00</td></tr>
+                            <tr><td>₱11,750.00 - ₱12,249.99</td><td style="font-weight: bold;">₱12,000.00</td><td>₱1,200.00</td><td style="color: #b71c1c; font-weight: bold;">₱600.00</td><td>₱1,800.00</td></tr>
+                            <tr><td>₱12,250.00 - ₱12,749.99</td><td style="font-weight: bold;">₱12,500.00</td><td>₱1,250.00</td><td style="color: #b71c1c; font-weight: bold;">₱625.00</td><td>₱1,875.00</td></tr>
+                            <tr><td>₱12,750.00 - ₱13,249.99</td><td style="font-weight: bold;">₱13,000.00</td><td>₱1,300.00</td><td style="color: #b71c1c; font-weight: bold;">₱650.00</td><td>₱1,950.00</td></tr>
+                            <tr><td>₱13,250.00 - ₱13,749.99</td><td style="font-weight: bold;">₱13,500.00</td><td>₱1,350.00</td><td style="color: #b71c1c; font-weight: bold;">₱675.00</td><td>₱2,025.00</td></tr>
+                            <tr><td>₱13,750.00 - ₱14,249.99</td><td style="font-weight: bold;">₱14,000.00</td><td>₱1,400.00</td><td style="color: #b71c1c; font-weight: bold;">₱700.00</td><td>₱2,100.00</td></tr>
+                            <tr><td>₱14,250.00 - ₱14,749.99</td><td style="font-weight: bold;">₱14,500.00</td><td>₱1,450.00</td><td style="color: #b71c1c; font-weight: bold;">₱725.00</td><td>₱2,175.00</td></tr>
+                            <tr><td>₱14,750.00 - ₱15,249.99</td><td style="font-weight: bold;">₱15,000.00</td><td>₱1,500.00</td><td style="color: #b71c1c; font-weight: bold;">₱750.00</td><td>₱2,250.00</td></tr>
+                            <tr><td>₱15,250.00 - ₱15,749.99</td><td style="font-weight: bold;">₱15,500.00</td><td>₱1,550.00</td><td style="color: #b71c1c; font-weight: bold;">₱775.00</td><td>₱2,325.00</td></tr>
+                            <tr><td>₱15,750.00 - ₱16,249.99</td><td style="font-weight: bold;">₱16,000.00</td><td>₱1,600.00</td><td style="color: #b71c1c; font-weight: bold;">₱800.00</td><td>₱2,400.00</td></tr>
+                            <tr><td>₱16,250.00 - ₱16,749.99</td><td style="font-weight: bold;">₱16,500.00</td><td>₱1,650.00</td><td style="color: #b71c1c; font-weight: bold;">₱825.00</td><td>₱2,475.00</td></tr>
+                            <tr><td>₱16,750.00 - ₱17,249.99</td><td style="font-weight: bold;">₱17,000.00</td><td>₱1,700.00</td><td style="color: #b71c1c; font-weight: bold;">₱850.00</td><td>₱2,550.00</td></tr>
+                            <tr><td>₱17,250.00 - ₱17,749.99</td><td style="font-weight: bold;">₱17,500.00</td><td>₱1,750.00</td><td style="color: #b71c1c; font-weight: bold;">₱875.00</td><td>₱2,625.00</td></tr>
+                            <tr><td>₱17,750.00 - ₱18,249.99</td><td style="font-weight: bold;">₱18,000.00</td><td>₱1,800.00</td><td style="color: #b71c1c; font-weight: bold;">₱900.00</td><td>₱2,700.00</td></tr>
+                            <tr><td>₱18,250.00 - ₱18,749.99</td><td style="font-weight: bold;">₱18,500.00</td><td>₱1,850.00</td><td style="color: #b71c1c; font-weight: bold;">₱925.00</td><td>₱2,775.00</td></tr>
+                            <tr><td>₱18,750.00 - ₱19,249.99</td><td style="font-weight: bold;">₱19,000.00</td><td>₱1,900.00</td><td style="color: #b71c1c; font-weight: bold;">₱950.00</td><td>₱2,850.00</td></tr>
+                            <tr><td>₱19,250.00 - ₱19,749.99</td><td style="font-weight: bold;">₱19,500.00</td><td>₱1,950.00</td><td style="color: #b71c1c; font-weight: bold;">₱975.00</td><td>₱2,925.00</td></tr>
+                            <tr><td>₱19,750.00 - ₱20,249.99</td><td style="font-weight: bold;">₱20,000.00</td><td>₱2,000.00</td><td style="color: #b71c1c; font-weight: bold;">₱1,000.00</td><td>₱3,000.00</td></tr>
+                            <tr><td>₱20,250.00 - ₱20,749.99</td><td style="font-weight: bold;">₱20,500.00</td><td>₱2,050.00</td><td style="color: #b71c1c; font-weight: bold;">₱1,025.00</td><td>₱3,075.00</td></tr>
+                            <tr><td>₱20,750.00 - ₱21,249.99</td><td style="font-weight: bold;">₱21,000.00</td><td>₱2,100.00</td><td style="color: #b71c1c; font-weight: bold;">₱1,050.00</td><td>₱3,150.00</td></tr>
+                            <tr><td>₱21,250.00 - ₱21,749.99</td><td style="font-weight: bold;">₱21,500.00</td><td>₱2,150.00</td><td style="color: #b71c1c; font-weight: bold;">₱1,075.00</td><td>₱3,225.00</td></tr>
+                            <tr><td>₱21,750.00 - ₱22,249.99</td><td style="font-weight: bold;">₱22,000.00</td><td>₱2,200.00</td><td style="color: #b71c1c; font-weight: bold;">₱1,100.00</td><td>₱3,300.00</td></tr>
+                            <tr><td>₱22,250.00 - ₱22,749.99</td><td style="font-weight: bold;">₱22,500.00</td><td>₱2,250.00</td><td style="color: #b71c1c; font-weight: bold;">₱1,125.00</td><td>₱3,375.00</td></tr>
+                            <tr><td>₱22,750.00 - ₱23,249.99</td><td style="font-weight: bold;">₱23,000.00</td><td>₱2,300.00</td><td style="color: #b71c1c; font-weight: bold;">₱1,150.00</td><td>₱3,450.00</td></tr>
+                            <tr><td>₱23,250.00 - ₱23,749.99</td><td style="font-weight: bold;">₱23,500.00</td><td>₱2,350.00</td><td style="color: #b71c1c; font-weight: bold;">₱1,175.00</td><td>₱3,525.00</td></tr>
+                            <tr><td>₱23,750.00 - ₱24,249.99</td><td style="font-weight: bold;">₱24,000.00</td><td>₱2,400.00</td><td style="color: #b71c1c; font-weight: bold;">₱1,200.00</td><td>₱3,600.00</td></tr>
+                            <tr><td>₱24,250.00 - ₱24,749.99</td><td style="font-weight: bold;">₱24,500.00</td><td>₱2,450.00</td><td style="color: #b71c1c; font-weight: bold;">₱1,225.00</td><td>₱3,675.00</td></tr>
+                            <tr><td>₱24,750.00 - ₱25,249.99</td><td style="font-weight: bold;">₱25,000.00</td><td>₱2,500.00</td><td style="color: #b71c1c; font-weight: bold;">₱1,250.00</td><td>₱3,750.00</td></tr>
+                            <tr><td>₱25,250.00 - ₱25,749.99</td><td style="font-weight: bold;">₱25,500.00</td><td>₱2,550.00</td><td style="color: #b71c1c; font-weight: bold;">₱1,275.00</td><td>₱3,825.00</td></tr>
+                            <tr><td>₱25,750.00 - ₱26,249.99</td><td style="font-weight: bold;">₱26,000.00</td><td>₱2,600.00</td><td style="color: #b71c1c; font-weight: bold;">₱1,300.00</td><td>₱3,900.00</td></tr>
+                            <tr><td>₱26,250.00 - ₱26,749.99</td><td style="font-weight: bold;">₱26,500.00</td><td>₱2,650.00</td><td style="color: #b71c1c; font-weight: bold;">₱1,325.00</td><td>₱3,975.00</td></tr>
+                            <tr><td>₱26,750.00 - ₱27,249.99</td><td style="font-weight: bold;">₱27,000.00</td><td>₱2,700.00</td><td style="color: #b71c1c; font-weight: bold;">₱1,350.00</td><td>₱4,050.00</td></tr>
+                            <tr><td>₱27,250.00 - ₱27,749.99</td><td style="font-weight: bold;">₱27,500.00</td><td>₱2,750.00</td><td style="color: #b71c1c; font-weight: bold;">₱1,375.00</td><td>₱4,125.00</td></tr>
+                            <tr><td>₱27,750.00 - ₱28,249.99</td><td style="font-weight: bold;">₱28,000.00</td><td>₱2,800.00</td><td style="color: #b71c1c; font-weight: bold;">₱1,400.00</td><td>₱4,200.00</td></tr>
+                            <tr><td>₱28,250.00 - ₱28,749.99</td><td style="font-weight: bold;">₱28,500.00</td><td>₱2,850.00</td><td style="color: #b71c1c; font-weight: bold;">₱1,425.00</td><td>₱4,275.00</td></tr>
+                            <tr><td>₱28,750.00 - ₱29,249.99</td><td style="font-weight: bold;">₱29,000.00</td><td>₱2,900.00</td><td style="color: #b71c1c; font-weight: bold;">₱1,450.00</td><td>₱4,350.00</td></tr>
+                            <tr><td>₱29,250.00 - ₱29,749.99</td><td style="font-weight: bold;">₱29,500.00</td><td>₱2,950.00</td><td style="color: #b71c1c; font-weight: bold;">₱1,475.00</td><td>₱4,425.00</td></tr>
+                            <tr><td>₱29,750.00 - ₱30,249.99</td><td style="font-weight: bold;">₱30,000.00</td><td>₱3,000.00</td><td style="color: #b71c1c; font-weight: bold;">₱1,500.00</td><td>₱4,500.00</td></tr>
+                            <tr><td>₱30,250.00 - ₱30,749.99</td><td style="font-weight: bold;">₱30,500.00</td><td>₱3,050.00</td><td style="color: #b71c1c; font-weight: bold;">₱1,525.00</td><td>₱4,575.00</td></tr>
+                            <tr><td>₱30,750.00 - ₱31,249.99</td><td style="font-weight: bold;">₱31,000.00</td><td>₱3,100.00</td><td style="color: #b71c1c; font-weight: bold;">₱1,550.00</td><td>₱4,650.00</td></tr>
+                            <tr><td>₱31,250.00 - ₱31,749.99</td><td style="font-weight: bold;">₱31,500.00</td><td>₱3,150.00</td><td style="color: #b71c1c; font-weight: bold;">₱1,575.00</td><td>₱4,725.00</td></tr>
+                            <tr><td>₱31,750.00 - ₱32,249.99</td><td style="font-weight: bold;">₱32,000.00</td><td>₱3,200.00</td><td style="color: #b71c1c; font-weight: bold;">₱1,600.00</td><td>₱4,800.00</td></tr>
+                            <tr><td>₱32,250.00 - ₱32,749.99</td><td style="font-weight: bold;">₱32,500.00</td><td>₱3,250.00</td><td style="color: #b71c1c; font-weight: bold;">₱1,625.00</td><td>₱4,875.00</td></tr>
+                            <tr><td>₱32,750.00 - ₱33,249.99</td><td style="font-weight: bold;">₱33,000.00</td><td>₱3,300.00</td><td style="color: #b71c1c; font-weight: bold;">₱1,650.00</td><td>₱4,950.00</td></tr>
+                            <tr><td>₱33,250.00 - ₱33,749.99</td><td style="font-weight: bold;">₱33,500.00</td><td>₱3,350.00</td><td style="color: #b71c1c; font-weight: bold;">₱1,675.00</td><td>₱5,025.00</td></tr>
+                            <tr><td>₱33,750.00 - ₱34,249.99</td><td style="font-weight: bold;">₱34,000.00</td><td>₱3,400.00</td><td style="color: #b71c1c; font-weight: bold;">₱1,700.00</td><td>₱5,100.00</td></tr>
+                            <tr><td>₱34,250.00 - ₱34,749.99</td><td style="font-weight: bold;">₱34,500.00</td><td>₱3,450.00</td><td style="color: #b71c1c; font-weight: bold;">₱1,725.00</td><td>₱5,175.00</td></tr>
+                            <tr><td>₱34,750.00 and above</td><td style="font-weight: bold;">₱35,000.00</td><td>₱3,500.00</td><td style="color: #b71c1c; font-weight: bold;">₱1,750.00</td><td>₱5,250.00</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="dashboard-cards" style="grid-template-columns: 1fr 1fr; margin-top: 20px;">
+                <div class="glass-card" style="padding: 25px;">
+                    <h3 style="color: #0277bd; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px;">
+                        <i class="fas fa-hospital-user"></i> PhilHealth Contribution
+                    </h3>
+                    <table class="custom-table">
+                        <thead>
+                            <tr><th>Income Floor</th><th>Income Ceiling</th><th>Rate</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>₱10,000.00</td>
+                                <td>₱100,000.00</td>
+                                <td style="color: #b71c1c; font-weight: bold;">5% Total (2.5% Employee Share)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p style="font-size: 13px; color: #666; margin-top: 10px;">Applied strictly during the First Cutoff of the month.</p>
+                </div>
+
+                <div class="glass-card" style="padding: 25px;">
+                    <h3 style="color: #e65100; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px;">
+                        <i class="fas fa-home"></i> Pag-IBIG Contribution
+                    </h3>
+                    <table class="custom-table">
+                        <thead>
+                            <tr><th>Status</th><th>Employer Share</th><th>Employee Share</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Mandatory</td>
+                                <td style="color: #b71c1c; font-weight: bold;">₱200.00</td>
+                                <td style="color: #b71c1c; font-weight: bold;">₱200.00</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p style="font-size: 13px; color: #666; margin-top: 10px;">Applied strictly during the Second Cutoff of the month.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <th:block id="extra-scripts"></th:block>
+
+</body>
+</html>

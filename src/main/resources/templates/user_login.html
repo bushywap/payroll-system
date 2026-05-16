@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Emilio Aguinaldo College | Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Merriweather:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" th:href="@{/css/user_login.css}">
+</head>
+<body>
+
+  <div id="splashScreen" class="splash-screen">
+      <div class="splash-content">
+          <img th:src="@{/images/eac_logo.png}" alt="EAC Logo" class="splash-logo">
+          <h1 class="splash-text">Welcome to Emilio Aguinaldo College Manila!</h1>
+          <h2 class="splash-subtext">PAYROLL PANEL</h2>
+      </div>
+  </div>
+
+  <main class="login-card" role="main" aria-labelledby="loginTitle">
+    <div class="header-text">
+      <img class="brand-logo" th:src="@{/images/eac_logo.png}" alt="EAC Logo"/>
+      <h2 id="loginTitle">Payroll Admin Login</h2>
+      <p>Sign in to the Payroll Panel</p>
+    </div>	
+
+    <form id="loginForm" novalidate>
+      <div class="field">
+        <input type="email" id="email" placeholder=" " autocomplete="username" required />
+        <label for="email">Email Address</label>
+        <i class="fa-regular fa-envelope input-icon"></i>
+      </div>
+
+      <div class="field">
+        <input type="password" id="password" placeholder=" " autocomplete="current-password" required />
+        <label for="password">Password</label>
+        <i class="fa-solid fa-eye toggle-pass input-icon" id="togglePassBtn" style="cursor: pointer;"></i>
+      </div>
+
+      <div class="actions">
+        <label class="custom-check">
+          <input type="checkbox" id="rememberMe"/> Remember me
+        </label>
+        <a href="#" class="forgot-link" id="forgotLink">Forgot Password</a>
+      </div>
+
+      <button type="submit" id="loginBtn" class="btn-primary">
+        <span class="btn-text">Sign In</span>
+        <div class="loader"></div>
+      </button>
+      
+      <p class="register-prompt">
+          Don't have an account? 
+<a th:href="@{/user_register}" class="register-link">Register Here</a>
+      </p>
+    </form>
+  </main>
+
+  <div class="toast-container" id="toastContainer"></div>
+  
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal-card">
+      <h3 style="color:var(--eac-red);margin-bottom:8px">Reset Password</h3>
+      <p style="color:#666;margin-bottom:15px; font-size: 14px;">Enter your registered email address to receive a password reset link.</p>
+
+      <div class="field" style="margin-bottom:20px">
+        <input type="email" id="resetEmail" placeholder=" " required />
+        <label>Email Address</label>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-primary" id="resetBtn">
+          <span class="btn-text">Send Link</span>
+          <div class="loader"></div>
+        </button>
+        <button class="btn-secondary" id="cancelModalBtn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script th:src="@{/js/user_login.js}"></script>
+  
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+        setTimeout(() => {
+            const splash = document.getElementById('splashScreen');
+            const loginCard = document.querySelector('.login-card');
+            
+            // 1. Hide the splash screen
+            if (splash) {
+                splash.style.display = 'none'; 
+            }
+            
+            // 2. Show the login page and trigger the animation
+            if (loginCard) {
+                loginCard.style.display = 'block'; 
+                loginCard.style.animation = 'loginCardReveal 1s ease-out forwards';
+            }
+        }, 2500);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Official Payslip</title>
+    <style>
+        /* =========================================
+           CORPORATE PDF PAYSLIP STYLES
+           Strict width locks to prevent PDF stretching
+           ========================================= */
+        @page {
+            size: A4;
+            margin: 40px; 
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            color: #222;
+            font-size: 11px;
+            margin: 0;
+            background-color: #ffffff;
+            line-height: 1.4;
+        }
+
+        /* --- 1. HEADER --- */
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #8b0000; 
+            padding-bottom: 12px;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            color: #8b0000;
+            margin: 0;
+            font-size: 22px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        .header p {
+            margin: 3px 0 0 0;
+            font-size: 11px;
+            color: #555;
+            text-transform: uppercase;
+        }
+        .header h2 {
+            margin: 12px 0 0 0;
+            font-size: 15px;
+            color: #222;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        /* --- 2. EMPLOYEE INFO BOX --- */
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            border: 1px solid #aaa;
+            background-color: #fafafa;
+        }
+        .info-table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #ddd;
+        }
+        .info-table tr:last-child td { border-bottom: none; }
+
+        .label {
+            font-weight: bold;
+            color: #555;
+            width: 15%;
+            font-size: 10px;
+            text-transform: uppercase;
+        }
+        .val {
+            width: 35%;
+            font-weight: bold;
+            color: #111;
+            font-size: 11px;
+            border-right: 1px solid #ddd;
+        }
+        .val:last-child { border-right: none; }
+
+        /* --- 3. MAIN TWO-COLUMN GRID --- */
+        .main-grid {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed; 
+        }
+        .main-grid td { vertical-align: top; }
+        
+        .col-left { width: 48%; padding-right: 2%; }
+        .col-right { width: 50%; }
+
+        /* --- 4. DATA TABLES --- */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 18px;
+            border: 1px solid #aaa;
+            table-layout: fixed; 
+        }
+        .data-table th {
+            padding: 8px 10px;
+            text-align: left;
+            font-size: 11px;
+            text-transform: uppercase;
+            font-weight: bold;
+            background-color: #eeeeee; 
+            color: #222;
+            border-bottom: 2px solid #aaa;
+        }
+        .data-table td {
+            padding: 6px 10px;
+            border-bottom: 1px solid #eaeaea;
+            font-size: 11px;
+            color: #333;
+        }
+        
+        .data-table td:nth-child(1) { width: 65%; }
+        .data-table td:nth-child(2) { width: 35%; text-align: right; }
+
+        .amt {
+            font-family: 'Courier New', Courier, monospace; 
+            font-weight: bold;
+            color: #111;
+        }
+
+        /* Subtotals & Grand Totals */
+        .subtotal-row { background-color: #f9f9f9; }
+        .subtotal-row td { padding: 8px 10px; font-weight: bold; font-size: 11px; border-top: 1px solid #aaa; color: #000; }
+        
+        .grand-deduct-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 2px solid #8b0000; 
+            margin-bottom: 20px;
+            table-layout: fixed;
+        }
+        .grand-deduct-table td {
+            padding: 10px 12px;
+            font-weight: bold;
+            font-size: 12px;
+            color: #8b0000;
+            background-color: #fff5f5;
+        }
+        .grand-deduct-table td:nth-child(1) { width: 65%; }
+        .grand-deduct-table td:nth-child(2) { width: 35%; text-align: right; font-family: 'Courier New', Courier, monospace;}
+
+        /* --- 5. NET PAY FOOTER --- */
+        .net-pay-section {
+            text-align: right;
+            border: 2px solid #000;
+            padding: 15px 25px;
+            margin-top: 10px;
+            background-color: #fcfcfc;
+        }
+        .net-pay-section p {
+            margin: 0;
+            font-size: 12px;
+            color: #555;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .net-pay-section h2 {
+            color: #000;
+            margin: 5px 0 0 0;
+            font-size: 26px;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        /* --- 6. TEACHING BREAKDOWN --- */
+        .teach-box {
+            border: 1px solid #aaa;
+            background: #f9f9f9;
+            padding: 12px;
+            margin-bottom: 18px;
+        }
+        .teach-box h3 {
+            margin: 0 0 8px 0;
+            color: #222;
+            font-size: 11px;
+            text-transform: uppercase;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        .teach-grid { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        .teach-grid td { padding: 4px 0; font-size: 11px; }
+        .teach-grid td:nth-child(2) { text-align: right; font-family: 'Courier New', Courier, monospace; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>EMILIO AGUINALDO COLLEGE MANILA</h1>
+        <p>1113-1117 SAN MARCELINO ST. PACO, MANILA</p>
+        <h2>OFFICIAL PAYSLIP</h2>
+    </div>
+
+    <table class="info-table">
+        <tr>
+            <td class="label">Employee Name:</td>
+            <td class="val" th:text="${emp?.firstName + ' ' + emp?.lastName}">Name</td>
+            <td class="label">Pay Period:</td>
+            <td class="val" th:text="${p?.payPeriodStart + ' to ' + p?.payPeriodEnd}">Period</td>
+        </tr>
+        <tr>
+            <td class="label">Employee ID:</td>
+            <td class="val" th:text="'EAC-' + ${emp?.employeeId}">ID</td>
+            <td class="label">Status:</td>
+            <td class="val" th:text="${emp?.employeeStatus}">Status</td>
+        </tr>
+        <tr>
+            <td class="label">Department:</td>
+            <td class="val" th:text="${emp?.department?.departmentName}">Dept</td>
+            <td class="label">Designation:</td>
+            <td class="val" th:text="${emp?.designation?.designation ?: 'N/A'}">Designation</td>
+        </tr>
+    </table>
+
+    <table class="main-grid">
+        <tbody>
+            <tr>
+                <td class="col-left">
+                    <table class="data-table">
+                        <thead><tr><th colspan="2">TAXABLE EARNINGS & ADDITIONS</th></tr></thead>
+                        <tbody>
+                            <tr>
+                                <td>Basic Pay</td>
+                                <td class="amt" th:text="${#numbers.formatDecimal(p?.basicSalary ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</td>
+                            </tr>
+                            <tr>
+                                <td>Teaching Pay (Overload)</td>
+                                <td class="amt" th:text="${#numbers.formatDecimal(p?.teachingPayRecord?.totalTeachingPay ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</td>
+                            </tr>
+                            <tr>
+                                <td>Honorarium</td>
+                                <td class="amt" th:text="${#numbers.formatDecimal(p?.honorarium ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</td>
+                            </tr>
+                            <tr>
+                                <td>Adjustments (Income)</td>
+                                <td class="amt" th:text="${#numbers.formatDecimal(p?.adjustment ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</td>
+                            </tr>
+                            <tr>
+                                <td>Overtime Pay</td>
+                                <td class="amt" th:text="${#numbers.formatDecimal(p?.overtimePay ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</td>
+                            </tr>
+                            <tr>
+                                <td>Holiday Pay</td>
+                                <td class="amt" th:text="${#numbers.formatDecimal(p?.holidayPay ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</td>
+                            </tr>
+                            <tr>
+                                <td>Paid Leaves</td>
+                                <td class="amt" th:text="${#numbers.formatDecimal(p?.leavePay ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</td>
+                            </tr>
+                            <tr>
+                                <td>Allowance</td>
+                                <td class="amt" th:text="${#numbers.formatDecimal(p?.allowance ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</td>
+                            </tr>
+                            <tr>
+                                <td>Relocation Pay</td>
+                                <td class="amt" th:text="${#numbers.formatDecimal(p?.relocationPay ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</td>
+                            </tr>
+                            <tr style="background-color: #f0fdf4;">
+                                <td style="color: #166534; font-weight: bold;">Adjustment Addition</td>
+                                <td class="amt" style="color: #166534;" th:text="${#numbers.formatDecimal(p?.manualAddition ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</td>
+                            </tr>
+                            <tr class="subtotal-row">
+                                <td>Subtotal Taxable Earnings</td>
+                                <td class="amt" th:text="${#numbers.formatDecimal((p?.basicSalary ?: 0) + (p?.teachingPayRecord?.totalTeachingPay ?: 0) + (p?.honorarium ?: 0) + (p?.adjustment ?: 0) + (p?.overtimePay ?: 0) + (p?.holidayPay ?: 0) + (p?.leavePay ?: 0) + (p?.allowance ?: 0) + (p?.relocationPay ?: 0) + (p?.manualAddition ?: 0), 1, 'COMMA', 2, 'POINT')}">0.00</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <table class="data-table">
+                        <thead><tr><th colspan="2">NON-TAXABLE EARNINGS</th></tr></thead>
+                        <tbody>
+                            <tr>
+                                <td>De Minimis</td>
+                                <td class="amt" th:text="${#numbers.formatDecimal(p?.deMinimis ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</td>
+                            </tr>
+                            <tr>
+                                <td>Longevity Pay</td>
+                                <td class="amt" th:text="${#numbers.formatDecimal(p?.longevity ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</td>
+                            </tr>
+                            <tr>
+                                <td>Cash Gift</td>
+                                <td class="amt" th:text="${#numbers.formatDecimal(p?.cashGift ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</td>
+                            </tr>
+                            <tr>
+                                <td>Incentive</td>
+                                <td class="amt" th:text="${#numbers.formatDecimal(p?.incentive ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</td>
+                            </tr>
+                            <tr class="subtotal-row">
+                                <td>Subtotal Non-Taxable</td>
+                                <td class="amt" th:text="${#numbers.formatDecimal((p?.deMinimis ?: 0) + (p?.longevity ?: 0) + (p?.cashGift ?: 0) + (p?.incentive ?: 0), 1, 'COMMA', 2, 'POINT')}">0.00</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <table class="grand-deduct-table" style="border-color: #047857; background-color: #f0fdf4;">
+                        <tr>
+                            <td style="color: #047857;">TOTAL GROSS PAY</td>
+                            <td class="amt" style="color: #047857;" th:text="${#numbers.formatDecimal(p?.grossIncome ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</td>
+                        </tr>
+                    </table>
+
+                    <div class="teach-box" th:if="${p?.teachingPayRecord != null}">
+                        <h3>Teaching Load Breakdown</h3>
+                        <table class="teach-grid">
+                            <tr>
+                                <td width="65%"><strong>Lec Excess:</strong> <span th:text="${p?.teachingPayRecord?.excessLecHours ?: 0}">0</span> hrs @ ₱<span th:text="${p?.teachingPayRecord?.hourlyRate ?: 0}">0</span></td>
+                                <td width="35%" class="amt" th:text="${#numbers.formatDecimal(p?.teachingPayRecord?.lecPay ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Lab Excess:</strong> <span th:text="${p?.teachingPayRecord?.excessLabHours ?: 0}">0</span> hrs @ ₱<span th:text="${p?.teachingPayRecord?.labRate ?: 0}">0</span></td>
+                                <td class="amt" th:text="${#numbers.formatDecimal(p?.teachingPayRecord?.labPay ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Supplemental Pay:</strong></td>
+                                <td class="amt" th:text="${#numbers.formatDecimal(p?.teachingPayRecord?.supplementalPay ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</td>
+                            </tr>
+                        </table>
+                    </div>
+                </td>
+
+                <td class="col-right">
+                    <table class="data-table">
+                        <thead><tr><th colspan="2">GOVERNMENT DEDUCTIONS & TAXES</th></tr></thead>
+                        <tbody>
+                            <tr>
+                                <td>Withholding Tax</td>
+                                <td class="amt" th:text="${#numbers.formatDecimal(p?.withholdingTax ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</td>
+                            </tr>
+                            <tr>
+                                <td>SSS Contribution</td>
+                                <td class="amt" th:text="${#numbers.formatDecimal(p?.sssDeduction ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</td>
+                            </tr>
+                            <tr>
+                                <td>PhilHealth Contribution</td>
+                                <td class="amt" th:text="${#numbers.formatDecimal(p?.philhealthDeduction ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</td>
+                            </tr>
+                            <tr>
+                                <td>Pag-IBIG Contribution</td>
+                                <td class="amt" th:text="${#numbers.formatDecimal(p?.pagibigDeduction ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</td>
+                            </tr>
+                            <tr class="subtotal-row">
+                                <td>Subtotal Gov't</td>
+                                <td class="amt" th:text="${#numbers.formatDecimal((p?.withholdingTax ?: 0) + (p?.sssDeduction ?: 0) + (p?.philhealthDeduction ?: 0) + (p?.pagibigDeduction ?: 0), 1, 'COMMA', 2, 'POINT')}">0.00</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <table class="data-table">
+                        <thead><tr><th colspan="2">ATTENDANCE PENALTIES (Deducted Pre-Tax)</th></tr></thead>
+                        <tbody>
+                            <tr>
+                                <td>Absences (<span th:text="${p?.totalAbsences ?: 0}">0</span> days)</td>
+                                <td class="amt" th:text="${#numbers.formatDecimal(p?.absentDeduction ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</td>
+                            </tr>
+                            <tr>
+                                <td>Lates (<span th:text="${p?.lateMinutes ?: 0}">0</span> mins)</td>
+                                <td class="amt" th:text="${#numbers.formatDecimal(p?.lateDeduction ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</td>
+                            </tr>
+                            <tr>
+                                <td>Undertime (<span th:text="${p?.undertimeMinutes ?: 0}">0</span> mins)</td>
+                                <td class="amt" th:text="${#numbers.formatDecimal(p?.undertimeDeduction ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</td>
+                            </tr>
+                            <tr class="subtotal-row">
+                                <td>Subtotal Penalties</td>
+                                <td class="amt" th:text="${#numbers.formatDecimal((p?.absentDeduction ?: 0) + (p?.lateDeduction ?: 0) + (p?.undertimeDeduction ?: 0), 1, 'COMMA', 2, 'POINT')}">0.00</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <table class="data-table">
+                        <thead><tr><th colspan="2">LOANS & OTHER DEDUCTIONS</th></tr></thead>
+                        <tbody>
+                            <tr>
+                                <td>SSS Loan</td>
+                                <td class="amt" th:text="${#numbers.formatDecimal(p?.sssLoan ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</td>
+                            </tr>
+                            <tr>
+                                <td>Pag-IBIG Loan</td>
+                                <td class="amt" th:text="${#numbers.formatDecimal(p?.hdmfLoan ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</td>
+                            </tr>
+                            <tr>
+                                <td>Other Salary Loans</td>
+                                <td class="amt" th:text="${#numbers.formatDecimal(p?.loanDeductions ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</td>
+                            </tr>
+                            <tr>
+                                <td>Leave Without Pay (LvU)</td>
+                                <td class="amt" th:text="${#numbers.formatDecimal(p?.leaveWithoutPay ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</td>
+                            </tr>
+                            <tr style="background-color: #fef2f2;">
+                                <td style="color: #991b1b; font-weight: bold;">Adjustment Deduction</td>
+                                <td class="amt" style="color: #991b1b;" th:text="${#numbers.formatDecimal(p?.manualDeduction ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</td>
+                            </tr>
+                            <tr class="subtotal-row">
+                                <td>Subtotal Loans & Others</td>
+                                <td class="amt" th:text="${#numbers.formatDecimal((p?.sssLoan ?: 0) + (p?.hdmfLoan ?: 0) + (p?.loanDeductions ?: 0) + (p?.leaveWithoutPay ?: 0) + (p?.manualDeduction ?: 0), 1, 'COMMA', 2, 'POINT')}">0.00</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <table class="grand-deduct-table">
+                        <tr>
+                            <td>OVERALL TOTAL DEDUCTIONS</td>
+                            <td class="amt" th:text="${#numbers.formatDecimal((p?.withholdingTax ?: 0) + (p?.sssDeduction ?: 0) + (p?.philhealthDeduction ?: 0) + (p?.pagibigDeduction ?: 0) + (p?.sssLoan ?: 0) + (p?.hdmfLoan ?: 0) + (p?.loanDeductions ?: 0) + (p?.leaveWithoutPay ?: 0) + (p?.manualDeduction ?: 0), 1, 'COMMA', 2, 'POINT')}">0.00</td>
+                        </tr>
+                    </table>
+
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="net-pay-section">
+        <p>NET PAY</p>
+        <h2 th:text="'PHP ' + ${#numbers.formatDecimal(p?.netPay ?: 0, 1, 'COMMA', 2, 'POINT')}">PHP 0.00</h2>
+    </div>
+
+</body>
+</html>

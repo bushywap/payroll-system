@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="menu(activePage)" class="sidebar">
+    <div class="sidebar-header">
+        <h3><i class="fas fa-briefcase"></i> HR Panel</h3>
+    </div>
+
+    <ul class="nav-links">
+        <li th:classappend="${activePage == 'dashboard'} ? 'active' : ''">
+            <a th:href="@{/dashboard}">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+            </a>
+        </li>
+
+        <li th:classappend="${activePage == 'employee'} ? 'active' : ''">
+            <a th:href="@{/employees}">
+                <i class="fas fa-users"></i>
+                <span>Employees</span>
+            </a>
+        </li>
+
+        <li th:classappend="${activePage == 'attendance'} ? 'active' : ''">
+            <a th:href="@{/attendance}">
+                <i class="fas fa-clock"></i>
+                <span>Attendance</span>
+            </a>
+        </li>
+
+        <li th:classappend="${activePage == 'leave'} ? 'active' : ''">
+            <a th:href="@{/leave}">
+                <i class="fas fa-calendar-times"></i>
+                <span>Leave</span>
+            </a>
+        </li>
+
+        <li th:classappend="${activePage == 'payroll'} ? 'active' : ''">
+            <a th:href="@{/payroll}">
+                <i class="fas fa-money-bill-wave"></i>
+                <span>Payroll</span>
+            </a>
+        </li>
+
+        <li th:classappend="${activePage == 'teaching_pay'} ? 'active' : ''">
+            <a th:href="@{/teaching-pay}">
+                <i class="fas fa-chalkboard-teacher"></i>
+                <span>Teaching Pay</span>
+            </a>
+        </li>
+
+        <li class="logout-item">
+            <form th:action="@{/logout}" method="post" id="logoutForm" style="display: none;"></form>
+            <a href="javascript:void(0);" class="logout-btn" onclick="document.getElementById('logoutForm').submit();">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
+        </li>
+    </ul>
+</div>
+
+</body>
+</html>

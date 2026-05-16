@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:fragment="page(title, activePage, extraHead, content, extraScripts)">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:replace="${title}">EAC Payroll</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Merriweather:wght@700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+
+    <th:block th:if="${extraHead != null}">
+        <th:block th:replace="${extraHead}"></th:block>
+    </th:block>
+</head>
+<body>
+
+    <header class="top-header">
+        <div class="header-left">
+            <img th:src="@{/images/eac_logo.png}" alt="EAC Logo" class="header-logo">
+            <h1 class="header-title">PAYROLL PANEL</h1>
+        </div>
+        <nav class="header-nav">
+            <ul>
+                <li><a th:href="@{/dashboard}" th:classappend="${activePage == 'dashboard'} ? 'active' : ''">DASHBOARD</a></li>
+                
+                <li class="nav-dropdown">
+                    <a href="#" th:classappend="${activePage == 'holidays' || activePage == 'suspensions'} ? 'active' : ''">CALENDAR <i class="fas fa-caret-down nav-dropdown-icon"></i></a>
+                    <div class="nav-dropdown-content">
+                        <a th:href="@{/holidays}"><i class="fas fa-calendar-day"></i> Manage Holidays</a>
+                        <a th:href="@{/suspensions}"><i class="fas fa-cloud-sun-rain"></i> Manage Suspensions</a>
+                    </div>
+                </li>
+
+                <li><a th:href="@{/attendance}" th:classappend="${activePage == 'attendance'} ? 'active' : ''">ATTENDANCE</a></li>
+                <li><a th:href="@{/teaching_load}" th:classappend="${activePage == 'teaching_load'} ? 'active' : ''">TEACHING LOAD</a></li>     
+                <li><a th:href="@{/compensation}" th:classappend="${activePage == 'compensation'} ? 'active' : ''">Employee Masterlist</a></li>
+                
+                <li class="nav-dropdown">
+                    <a href="#" th:classappend="${activePage == 'payroll' || activePage == 'teaching_payroll' || activePage == 'payroll_register' || activePage == 'gov_deductions'} ? 'active' : ''">PAYROLL <i class="fas fa-caret-down nav-dropdown-icon"></i></a>
+                    <div class="nav-dropdown-content">
+                        <a th:href="@{/payroll}"><i class="fas fa-calculator"></i> Payroll Management</a>
+                        <a th:href="@{/teaching_payroll}"><i class="fas fa-chalkboard-teacher"></i> Teaching Payroll Process</a>
+                        <a th:href="@{/payroll_register}"><i class="fas fa-file-invoice"></i> Payroll Register</a>
+                        <a th:href="@{/gov_deductions}"><i class="fas fa-table"></i> Gov'n Deduction Table</a>
+                    </div>
+                </li>
+                <li><a th:href="@{/logout}" class="logout-link"><i class="fas fa-sign-out-alt"></i> LOGOUT</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <th:block th:replace="${content}"></th:block>
+
+    <th:block th:if="${extraScripts != null}">
+        <th:block th:replace="${extraScripts}"></th:block>
+    </th:block>
+
+</body>
+</html>

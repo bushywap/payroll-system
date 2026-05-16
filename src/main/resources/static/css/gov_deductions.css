@@ -1,0 +1,24 @@
+/* Professional Scrolling Table Enhancements */
+.professional-table-container { max-height: 600px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); background: #fff; }
+.gov-table { width: 100%; border-collapse: collapse; }
+.gov-table th { position: sticky; top: 0; background: #111827 !important; color: #ffffff !important; z-index: 10; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); padding: 15px 10px; }
+.gov-table td { font-size: 13px; padding: 10px 15px; border-bottom: 1px solid #f1f5f9; }
+.gov-table tbody tr:hover { background-color: #f8fafc; }
+
+/* Accounting Number Alignment */
+.num-col { text-align: right !important; font-family: 'Inter', monospace; }
+.text-col { text-align: left !important; }
+.row-min { background-color: #f0fdf4 !important; } 
+.row-max { background-color: #fef2f2 !important; } 
+.td-bold { font-weight: bold; }
+.gov-val-max { color: #d32f2f; font-weight: bold; }
+
+/* TAB STYLING */
+.gov-tabs { display: flex; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #ddd; padding-bottom: 0; }
+.gov-tab-btn { background: none; border: none; padding: 10px 20px; font-size: 15px; font-weight: 600; color: #888; border-bottom: 3px solid transparent; transition: all 0.3s ease; margin-right: 5px; position: relative; z-index: 10; cursor: pointer !important; }
+.gov-tab-btn.active { color: #d32f2f; border-bottom: 3px solid #d32f2f; }
+.gov-tab-btn:hover { color: #d32f2f; background-color: #f9f9f9; }
+.gov-tab-content { display: none; }
+
+.gov-table-title { margin-bottom: 15px; margin-top: 0; }
+.page-header-mt50 { margin-top: 50px; }

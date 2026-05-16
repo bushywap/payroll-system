@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Management - Payroll System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" th:href="@{/css/style_attendance.css}">
+    <link rel="stylesheet" th:href="@{/css/sidebar.css?v=2}">
+    <style>
+        .quick-filters {
+            margin-bottom: 15px;
+            display: flex;
+            gap: 10px;
+        }
+        .btn-quick {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            font-weight: 500;
+            transition: opacity 0.3s;
+        }
+        .btn-quick:hover { opacity: 0.8; }
+        .btn-today { background-color: #10b981; }
+        .btn-month { background-color: #3b82f6; }
+        .btn-all { background-color: #8b5cf6; }
+        
+        .text-danger { color: #ef4444; font-weight: bold; }
+        .text-success { color: #10b981; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{sidebar :: menu('attendance')}"></div>
+ 
+<main class="main">
+    <div class="header-section">
+        <h1><i class="fas fa-clock"></i> Attendance Management</h1>
+        <p class="subtitle">View employee attendance for payroll</p>
+    </div>
+
+    <div class="grid">
+        <div class="card status-card">
+            <h3><i class="fas fa-calendar-day"></i> Today's Attendance</h3>
+            <button class="btn-refresh" onclick="loadTodayAttendance()" style="margin-bottom: 15px;">
+                <i class="fas fa-sync-alt"></i> Refresh Today's List
+            </button>
+            
+            <div class="table-container">
+                <table id="todayAttendanceTable" style="width: 100%; text-align: left; border-collapse: collapse;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid #ddd;">
+                            <th>Emp ID</th>
+                            <th>Time In</th>
+                            <th>Time Out</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="todayAttendanceTableBody">
+                        <tr><td colspan="4" style="text-align:center; padding: 15px;">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card history-card">
+        <h3><i class="fas fa-history"></i> Comprehensive Attendance History</h3>
+        
+        <div class="quick-filters">
+            <button class="btn-quick btn-today" onclick="setFilterToday()"><i class="fas fa-calendar-day"></i> View Today</button>
+            <button class="btn-quick btn-month" onclick="setFilterThisMonth()"><i class="fas fa-calendar-alt"></i> This Month</button>
+            <button class="btn-quick btn-all" onclick="setFilterAllTime()"><i class="fas fa-list"></i> All History</button>
+        </div>
+
+        <div class="filter-section" style="background: #f8fafc; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+            <div class="form-group inline">
+                <label for="filterEmployeeQuery">Employee ID/Name (Optional):</label>
+                <input type="text" id="filterEmployeeQuery" placeholder="Leave blank for all">
+            </div>
+            <div class="form-group inline">
+                <label for="startDate">Start Date:</label>
+                <input type="date" id="startDate">
+            </div>
+            <div class="form-group inline">
+                <label for="endDate">End Date:</label>
+                <input type="date" id="endDate">
+            </div>
+            <button class="btn-filter" onclick="loadAttendanceHistory()">
+                <i class="fas fa-search"></i> Search
+            </button>
+        </div>
+
+        <div class="table-container">
+            <table id="attendanceTable" style="width: 100%; text-align: left; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: #f1f5f9; border-bottom: 2px solid #cbd5e1;">
+                        <th style="padding: 12px;">Emp ID</th> 
+                        <th style="padding: 12px;">Date</th>
+                        <th style="padding: 12px;">Time In</th>
+                        <th style="padding: 12px;">Time Out</th>
+                        <th style="padding: 12px;">Late (Mins)</th>
+                        <th style="padding: 12px;">Undertime (Mins)</th>
+                        <th style="padding: 12px;">OT (Hrs)</th>
+                        <th style="padding: 12px;">Status</th>
+                    </tr>
+                </thead>
+                <tbody id="attendanceTableBody">
+                    <tr>
+                        <td colspan="8" class="no-data" style="text-align:center; padding: 20px;">No attendance records found</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card calendar-card">
+        <h3><i class="fas fa-calendar-alt"></i> Employee Attendance Calendar</h3>
+        
+        <div class="calendar-controls-section">
+            <div class="form-group inline">
+                <label for="calendarEmployeeQuery">Employee ID or Name:</label>
+                <input type="text" id="calendarEmployeeQuery" placeholder="Enter ID or Name">
+            </div>
+            <div class="form-group inline">
+                <label for="calendarMonth">Month:</label>
+                <select id="calendarMonth">
+                    <option value="0">January</option>
+                    <option value="1">February</option>
+                    <option value="2">March</option>
+                    <option value="3">April</option>
+                    <option value="4">May</option>
+                    <option value="5">June</option>
+                    <option value="6">July</option>
+                    <option value="7">August</option>
+                    <option value="8">September</option>
+                    <option value="9">October</option>
+                    <option value="10">November</option>
+                    <option value="11">December</option>
+                </select>
+            </div>
+            <div class="form-group inline">
+                <label for="calendarYear">Year:</label>
+                <select id="calendarYear"></select>
+            </div>
+            <button class="btn-filter" onclick="loadAttendanceCalendar()">
+                <i class="fas fa-search"></i> Load Calendar
+            </button>
+        </div>
+
+        <div class="calendar-stats-section">
+            <div class="stat-box">
+                <div class="stat-label">Total Days</div>
+                <div class="stat-value" id="calTotalDays">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Present</div>
+                <div class="stat-value" id="calPresentDays">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Late</div>
+                <div class="stat-value" id="calLateDays">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Absent</div>
+                <div class="stat-value" id="calAbsentDays">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Total Hours</div>
+                <div class="stat-value" id="calTotalHours">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Attendance %</div>
+                <div class="stat-value" id="calAttendancePercent">0%</div>
+            </div>
+        </div>
+
+        <div class="calendar-container-attendance">
+            <div class="calendar-header-attendance">
+                <div class="weekday">Sun</div>
+                <div class="weekday">Mon</div>
+                <div class="weekday">Tue</div>
+                <div class="weekday">Wed</div>
+                <div class="weekday">Thu</div>
+                <div class="weekday">Fri</div>
+                <div class="weekday">Sat</div>
+            </div>
+            <div id="attendanceCalendarGrid" class="calendar-grid-attendance">
+                </div>
+        </div>
+
+        <div class="legend-attendance">
+            <div class="legend-item">
+                <div class="legend-color present"></div>
+                <span>Present</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color late"></div>
+                <span>Late</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color absent"></div>
+                <span>Absent</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color half-day"></div>
+                <span>Half Day</span>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script th:src="@{/js/script_attendance.js}"></script>
+
+</body>
+</html>

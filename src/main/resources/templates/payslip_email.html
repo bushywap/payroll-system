@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <style>
+        /* Mobile-Friendly Email Styles */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #333; background-color: #e9ecef; padding: 20px 0; margin: 0; }
+        .main-wrapper { max-width: 650px; margin: 0 auto; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .header-image { width: 100%; display: block; border-bottom: 4px solid #800000; }
+        
+        .content-body { padding: 25px; }
+        
+        .payslip-title { text-align: center; color: #800000; text-transform: uppercase; border-bottom: 2px dashed #ccc; padding-bottom: 10px; margin-top: 0; margin-bottom: 20px; letter-spacing: 1px; font-size: 20px; }
+        
+        .info-table { width: 100%; border-collapse: collapse; margin-bottom: 25px; background-color: #f8f9fa; border-radius: 5px; }
+        .info-table td { padding: 8px 12px; font-size: 13px; border: 1px solid #eee; }
+        .info-table td:nth-child(odd) { font-weight: bold; color: #555; width: 20%; text-transform: uppercase; font-size: 11px; }
+        .info-table td:nth-child(even) { width: 30%; color: #000; font-weight: bold; }
+        
+        .section-title { background-color: #800000; color: white; padding: 10px 15px; margin: 0; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
+        
+        .details-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 25px; border: 1px solid #ddd; }
+        .details-table th { background-color: #f1f5f9; color: #334155; padding: 10px 15px; text-align: left; border-bottom: 2px solid #cbd5e1; }
+        .details-table td { padding: 8px 15px; border-bottom: 1px solid #f1f5f9; }
+        .amount { text-align: right; font-family: 'Courier New', Courier, monospace; font-weight: 600; color: #0f172a; }
+        
+        .row-deduction td { color: #b91c1c; }
+        .row-addition td { color: #15803d; background-color: #f0fdf4; }
+        .row-manual-ded td { color: #b91c1c; background-color: #fef2f2; }
+        
+        .subtotal-row td { font-weight: bold; background-color: #f8fafc; border-top: 2px solid #cbd5e1; border-bottom: none; color: #0f172a; }
+        .gross-row td { font-weight: bold; background-color: #e0f2fe; border-top: 2px solid #0284c7; color: #0369a1; font-size: 14px; padding: 12px 15px; }
+        
+        .grand-total-container { text-align: center; background-color: #10b981; color: white; padding: 20px; margin-top: 20px; }
+        .grand-total-container h2 { margin: 5px 0 0 0; font-size: 32px; font-family: 'Courier New', Courier, monospace; }
+        .grand-total-container span { font-size: 13px; opacity: 0.9; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; }
+        
+        .footer { text-align: center; font-size: 11px; color: #94a3b8; padding: 20px; background: #f8fafc; border-top: 1px solid #e2e8f0; line-height: 1.5; }
+    </style>
+</head>
+<body>
+    <div class="main-wrapper">
+        <img src="cid:payslipHeaderImage" alt="EAC Banner" class="header-image" />
+
+        <div class="content-body">
+            <h2 class="payslip-title">Official Electronic Payslip</h2>
+            
+            <table class="info-table">
+                <tr>
+                    <td>Employee Name:</td>
+                    <td th:text="${emp.firstName + ' ' + emp.lastName}">John Doe</td>
+                    <td>Pay Period:</td>
+                    <td th:text="${p.payPeriodStart + ' to ' + p.payPeriodEnd}">2023-01-01 to 2023-01-15</td>
+                </tr>
+                <tr>
+                    <td>Employee ID:</td>
+                    <td th:text="'EAC-' + ${emp.employeeId}">EAC-1</td>
+                    <td>Department:</td>
+                    <td th:text="${emp.department != null ? emp.department.departmentName : 'N/A'}">IT</td>
+                </tr>
+                <tr>
+                    <td>Status:</td>
+                    <td th:text="${emp.employeeStatus != null ? emp.employeeStatus : 'Regular'}">Regular</td>
+                    <td>Email:</td>
+                    <td th:text="${emp.email}">john.doe@email.com</td>
+                </tr>
+            </table>
+
+            <h3 class="section-title" style="background-color: #0284c7;">Earnings & Additions</h3>
+            <table class="details-table">
+                <thead>
+                    <tr><th>Description</th><th class="amount">Amount (PHP)</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Basic Salary</td><td class="amount" th:text="${#numbers.formatDecimal(p.basicSalary ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</td></tr>
+                    <tr th:if="${p.teachingPayRecord != null}"><td>Teaching Pay (Overload)</td><td class="amount" th:text="${#numbers.formatDecimal(p.teachingPayRecord.totalTeachingPay ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</td></tr>
+                    <tr><td>Overtime Pay</td><td class="amount" th:text="${#numbers.formatDecimal(p.overtimePay ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</td></tr>
+                    <tr><td>Honorarium</td><td class="amount" th:text="${#numbers.formatDecimal(p.honorarium ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</td></tr>
+                    <tr><td>Adjustments (Income)</td><td class="amount" th:text="${#numbers.formatDecimal(p.adjustment ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</td></tr>
+                    <tr><td>Holiday Pay</td><td class="amount" th:text="${#numbers.formatDecimal(p.holidayPay ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</td></tr>
+                    <tr><td>Paid Leaves</td><td class="amount" th:text="${#numbers.formatDecimal(p.leavePay ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</td></tr>
+                    <tr><td>Allowance</td><td class="amount" th:text="${#numbers.formatDecimal(p.allowance ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</td></tr>
+                    
+                    <tr><td colspan="2" style="background: #f8fafc; font-weight: bold; font-size: 11px; text-transform: uppercase; color: #64748b; padding: 5px 15px;">Non-Taxable Earnings</td></tr>
+                    <tr><td>De Minimis</td><td class="amount" th:text="${#numbers.formatDecimal(p.deMinimis ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</td></tr>
+                    <tr><td>Longevity Pay</td><td class="amount" th:text="${#numbers.formatDecimal(p.longevity ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</td></tr>
+                    <tr><td>Cash Gift / Incentive</td><td class="amount" th:text="${#numbers.formatDecimal((p.cashGift ?: 0) + (p.incentive ?: 0), 1, 'COMMA', 2, 'POINT')}">0.00</td></tr>
+                    
+                    <tr class="row-addition">
+                        <td><strong>Manual Addition (Override)</strong></td>
+                        <td class="amount">+₱<span th:text="${#numbers.formatDecimal(p.manualAddition ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</span></td>
+                    </tr>
+                    
+                    <tr class="gross-row">
+                        <td>TOTAL GROSS EARNINGS</td>
+                        <td class="amount">₱<span th:text="${#numbers.formatDecimal(p.grossIncome ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</span></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3 class="section-title" style="background-color: #b91c1c;">Deductions & Penalties</h3>
+            <table class="details-table">
+                <thead>
+                    <tr><th>Description</th><th class="amount">Amount (PHP)</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td colspan="2" style="background: #f8fafc; font-weight: bold; font-size: 11px; text-transform: uppercase; color: #64748b; padding: 5px 15px;">Gov't & Taxes</td></tr>
+                    <tr class="row-deduction"><td>Withholding Tax</td><td class="amount">-₱<span th:text="${#numbers.formatDecimal(p.withholdingTax ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</span></td></tr>
+                    <tr class="row-deduction"><td>SSS Contribution</td><td class="amount">-₱<span th:text="${#numbers.formatDecimal(p.sssDeduction ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</span></td></tr>
+                    <tr class="row-deduction"><td>PhilHealth</td><td class="amount">-₱<span th:text="${#numbers.formatDecimal(p.philhealthDeduction ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</span></td></tr>
+                    <tr class="row-deduction"><td>Pag-IBIG</td><td class="amount">-₱<span th:text="${#numbers.formatDecimal(p.pagibigDeduction ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</span></td></tr>
+
+                    <tr><td colspan="2" style="background: #f8fafc; font-weight: bold; font-size: 11px; text-transform: uppercase; color: #64748b; padding: 5px 15px;">Attendance Penalties</td></tr>
+                    <tr class="row-deduction">
+                        <td>Absences (<span th:text="${p.totalAbsences ?: 0}">0</span> days)</td>
+                        <td class="amount">-₱<span th:text="${#numbers.formatDecimal(p.absentDeduction ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</span></td>
+                    </tr>
+                    <tr class="row-deduction">
+                        <td>Lates (<span th:text="${p.lateMinutes ?: 0}">0</span> mins)</td>
+                        <td class="amount">-₱<span th:text="${#numbers.formatDecimal(p.lateDeduction ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</span></td>
+                    </tr>
+                    <tr class="row-deduction">
+                        <td>Undertime (<span th:text="${p.undertimeMinutes ?: 0}">0</span> mins)</td>
+                        <td class="amount">-₱<span th:text="${#numbers.formatDecimal(p.undertimeDeduction ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</span></td>
+                    </tr>
+
+                    <tr><td colspan="2" style="background: #f8fafc; font-weight: bold; font-size: 11px; text-transform: uppercase; color: #64748b; padding: 5px 15px;">Loans & Others</td></tr>
+                    <tr class="row-deduction"><td>SSS / Pag-IBIG Loans</td><td class="amount">-₱<span th:text="${#numbers.formatDecimal((p.sssLoan ?: 0) + (p.hdmfLoan ?: 0), 1, 'COMMA', 2, 'POINT')}">0.00</span></td></tr>
+                    <tr class="row-deduction"><td>Other Salary Loans</td><td class="amount">-₱<span th:text="${#numbers.formatDecimal(p.loanDeductions ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</span></td></tr>
+                    <tr class="row-deduction"><td>Leave Without Pay (LvU)</td><td class="amount">-₱<span th:text="${#numbers.formatDecimal(p.leaveWithoutPay ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</span></td></tr>
+                    
+                    <tr class="row-manual-ded">
+                        <td><strong>Manual Deduction (Override)</strong></td>
+                        <td class="amount">-₱<span th:text="${#numbers.formatDecimal(p.manualDeduction ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</span></td>
+                    </tr>
+
+                    <tr class="subtotal-row">
+                        <td style="color: #b91c1c;">TOTAL DEDUCTIONS & PENALTIES</td>
+                        <td class="amount" style="color: #b91c1c;">₱<span th:text="${#numbers.formatDecimal((p.withholdingTax ?: 0) + (p.sssDeduction ?: 0) + (p.philhealthDeduction ?: 0) + (p.pagibigDeduction ?: 0) + (p.absentDeduction ?: 0) + (p.lateDeduction ?: 0) + (p.undertimeDeduction ?: 0) + (p.sssLoan ?: 0) + (p.hdmfLoan ?: 0) + (p.loanDeductions ?: 0) + (p.leaveWithoutPay ?: 0) + (p.manualDeduction ?: 0), 1, 'COMMA', 2, 'POINT')}">0.00</span></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div th:if="${p.teachingPayRecord != null and p.teachingPayRecord.totalTeachingPay > 0}">
+                <h3 class="section-title" style="background-color: #0f172a;">Teaching Load Details</h3>
+                <table class="details-table" style="margin-bottom: 25px;">
+                    <thead>
+                        <tr>
+                            <th>Description</th>
+                            <th style="text-align: center;">Excess Hrs</th>
+                            <th class="amount">Amount (PHP)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Lecture Pay (@ ₱<span th:text="${p.teachingPayRecord.hourlyRate ?: 0}">0</span>/hr)</td>
+                            <td style="text-align: center;" th:text="${p.teachingPayRecord.excessLecHours ?: 0}">0</td>
+                            <td class="amount">₱<span th:text="${#numbers.formatDecimal(p.teachingPayRecord.lecPay ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</span></td>
+                        </tr>
+                        <tr>
+                            <td>Laboratory Pay (@ ₱<span th:text="${p.teachingPayRecord.labRate ?: 0}">0</span>/hr)</td>
+                            <td style="text-align: center;" th:text="${p.teachingPayRecord.excessLabHours ?: 0}">0</td>
+                            <td class="amount">₱<span th:text="${#numbers.formatDecimal(p.teachingPayRecord.labPay ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</span></td>
+                        </tr>
+                        <tr class="subtotal-row">
+                            <td colspan="2">Gross Teaching Pay</td>
+                            <td class="amount">₱<span th:text="${#numbers.formatDecimal(p.teachingPayRecord.totalTeachingPay ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div> <div class="grand-total-container">
+            <span>Net Take-Home Pay</span>
+            <h2>PHP <span th:text="${#numbers.formatDecimal(p.netPay ?: 0, 1, 'COMMA', 2, 'POINT')}">0.00</span></h2>
+        </div>
+
+    </div>
+</body>
+</html>

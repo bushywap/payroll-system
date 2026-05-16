@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" 
+      th:replace="~{layout :: page(~{::title}, 'payroll', ~{::th:block#extra-head}, ~{::.main-content}, ~{::th:block#extra-scripts})}">
+<head>
+    <title>Payroll Management | HR Panel</title>
+    
+    <th:block id="extra-head">
+        <link rel="stylesheet" th:href="@{/css/payroll.css}">
+    </th:block>
+</head>
+<body>
+    
+    <div class="main-content">
+        <div class="page-header">
+            <h2>Payroll Management</h2>
+            <p class="subtitle subtitle-dark">Automated batch computation & payslip generation</p>
+            
+            <div class="attendance-toggle-container" style="margin-top: 15px; margin-bottom: 5px;">
+                <button type="button" class="btn-tab active-tab" id="btnEmpPayroll" onclick="switchPayrollMode('EMPLOYEE')">
+                    Non-Faculty
+                </button>
+                <button type="button" class="btn-tab inactive-tab" id="btnTeachPayroll" onclick="switchPayrollMode('TEACHING')">
+                    Faculty (Teaching)
+                </button>
+            </div>
+            <input type="hidden" id="currentPayrollMode" value="EMPLOYEE">
+        </div>
+
+        <div class="payroll-grid">
+            
+            <div class="glass-card setup-card">
+                <h3><i class="fas fa-calendar-alt"></i> Payroll Period Setup</h3>
+                
+                <div class="date-grid" style="margin-bottom: 20px;">
+                    <div class="form-group">
+                        <label for="startDate"><i class="fas fa-calendar"></i> Period Start</label>
+                        <input type="date" id="startDate" max="9999-12-31">
+                    </div>
+                    <div class="form-group">
+                        <label for="endDate"><i class="fas fa-calendar-check"></i> Period End</label>
+                        <input type="date" id="endDate" max="9999-12-31">
+                    </div>
+                </div>
+
+                <div class="batch-section emp-only">
+                    <h4 style="margin-bottom: 10px; color: #b71c1c;"><i class="fas fa-users"></i> Non-Faculty Batch Processing</h4>
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label for="batchDepartment"><i class="fas fa-sitemap"></i> Select Department</label>
+                        <select id="batchDepartment" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ddd;">
+                            <option value="ALL">All Departments</option>
+                            <option th:each="dept : ${departments}" th:value="${dept.departmentName}" th:text="${dept.departmentName}"></option>
+                        </select>
+                    </div>
+
+                    <div class="action-buttons" style="flex-direction: row;">
+                        <button id="calcAllBtn" class="btn-gold" style="background-color: #f39c12; width: 48%;" onclick="calculateAllPayroll()">
+                            <i class="fas fa-calculator"></i> Calculate
+                        </button>
+                        <button id="sendAllBtn" class="btn-gold" style="background-color: #27ae60; width: 48%;" onclick="sendAllPayroll()">
+                            <i class="fas fa-save"></i> Save to Register
+                        </button>
+                    </div>
+                </div>
+
+                <div class="batch-section emp-only" style="border-top: 1px dashed #ccc; padding-top: 20px;">
+                    <h4 style="margin-bottom: 10px; color: #b71c1c;"><i class="fas fa-user"></i> Non-Faculty Individual Processing</h4>
+                    <div class="form-group">
+                        <label for="employeeId">Employee ID or Name</label>
+                        <input type="text" id="employeeId" placeholder="e.g., 102 or Jane">
+                    </div>
+                    <div class="form-group">
+                        <label for="loan">Add Loan Deduction (Optional)</label>
+                        <input type="number" id="loan" placeholder="0.00">
+                    </div>
+                    <div class="action-buttons" style="flex-direction: row; margin-top: 15px;">
+                        <button id="calcBtn" class="btn-red" onclick="calculatePayroll()" style="background-color: #e6b800; color: white; width: 48%;">
+                            <i class="fas fa-eye"></i> Preview Individual
+                        </button>
+                        <button id="sendBtn" class="btn-red" style="width: 48%;" onclick="sendPayroll()">
+                            <i class="fas fa-save"></i> Save Individual
+                        </button>
+                    </div>
+                </div>
+
+                <div class="teach-only batch-section" style="display: none;">
+                    <h4 style="margin-bottom: 10px; color: #b71c1c;"><i class="fas fa-users"></i> Faculty Batch Processing</h4>
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label for="teachBatchDepartment"><i class="fas fa-sitemap"></i> Select Department</label>
+                        <select id="teachBatchDepartment" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ddd;">
+                            <option value="ALL">All Departments</option>
+                            <option th:each="dept : ${departments}" th:value="${dept.departmentName}" th:text="${dept.departmentName}"></option>
+                        </select>
+                    </div>
+
+                    <div class="action-buttons" style="flex-direction: row;">
+                        <button id="calcAllTeachBtn" class="btn-gold" style="background-color: #f39c12; width: 48%;" onclick="calculateAllTeachingPayroll()">
+                            <i class="fas fa-calculator"></i> Calculate
+                        </button>
+                        <button id="sendAllTeachBtn" class="btn-gold" style="background-color: #27ae60; width: 48%;" onclick="sendAllTeachingPayroll()">
+                            <i class="fas fa-save"></i> Save to Register
+                        </button>
+                    </div>
+                </div>
+
+                <div class="teach-only batch-section" style="display: none; border-top: 1px dashed #ccc; padding-top: 20px;">
+                    <h4 style="margin-bottom: 10px; color: #b71c1c;"><i class="fas fa-user"></i> Faculty Manual Override / Preview</h4>
+                    <div class="form-group">
+                        <label for="teachEmployeeId">ID or Name</label>
+                        <input type="text" id="teachEmployeeId" placeholder="e.g., 102 or Jane">
+                    </div>
+                    <div class="date-grid">
+                        <div class="form-group">
+                            <label>Lecture Units</label>
+                            <input type="number" id="teachLec" placeholder="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Lab Units</label>
+                            <input type="number" id="teachLab" placeholder="0">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Rate for hour/s per unit</label>
+                        <input type="number" id="teachRate" placeholder="0.00">
+                    </div>
+                    <div class="form-group">
+                        <label>Holiday Pay</label>
+                        <input type="number" id="teachHoliday" placeholder="0.00">
+                    </div>
+                    <div class="action-buttons" style="flex-direction: row; margin-top: 15px;">
+                        <button id="calcTeachBtn" class="btn-red" onclick="calculatePayroll()" style="background-color: #e6b800; color: white; width: 48%;">
+                            <i class="fas fa-eye"></i> Preview Individual
+                        </button>
+                        <button id="sendTeachBtn" class="btn-red" style="background-color: #d32f2f; width: 48%;" onclick="sendPayroll()">
+                            <i class="fas fa-save"></i> Save Individual
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="glass-card preview-card">
+                <h3><i class="fas fa-file-invoice-dollar"></i> <span id="payslipTitle">Payslip Preview</span></h3>
+                
+                <div id="emptyPreviewState" style="text-align: center; padding: 60px 20px; border: 2px dashed #e2e8f0; border-radius: 8px; margin-top: 15px; background: #f8fafc;">
+                    <i class="fas fa-calculator" style="font-size: 48px; color: #cbd5e1; margin-bottom: 15px;"></i>
+                    <h4 style="margin: 0 0 8px 0; color: #475569; font-size: 18px;">No Data Generated</h4>
+                    <p style="margin: 0; color: #64748b; font-size: 14px;">Please encode the specific cutoff dates and click "Calculate" to view the payroll data.</p>
+                </div>
+
+                <div id="batchPayslipPreview" style="display: none;">
+                    <div class="table-controls">
+                        <button class="slide-btn" onclick="slideBatchTable('left')"><i class="fas fa-chevron-left"></i> Slide Left</button>
+                        <div class="current-section-label" id="scrollLabel">Viewing: Non-Faculty Info</div>
+                        <button class="slide-btn" onclick="slideBatchTable('right')">Slide Right <i class="fas fa-chevron-right"></i></button>
+                    </div>
+
+                    <div class="batch-scroll-container" id="batchContainer">
+                        <table class="payroll-ledger">
+                            <thead>
+                                <tr>
+                                    <th colspan="2" class="head-info">NON-FACULTY INFO</th>
+                                    <th colspan="9" class="head-earn">EARNINGS SECTION</th>
+                                    <th colspan="10" class="head-ded">DEDUCTIONS SECTION</th>
+                                    <th rowspan="2" class="head-net" style="vertical-align: bottom;">NET PAY</th>
+                                </tr>
+                                <tr>
+                                    <th class="head-info">ID</th>
+                                    <th class="head-info" style="min-width: 200px; text-align: left;">Name</th>
+                                    <th>Basic</th><th>Longv.</th><th>Lv(P)</th><th>Hol</th><th>Hon.</th><th>Teach/Sub</th><th>OT</th><th>Gross</th><th style="color:#0284c7;">Total Earn</th>
+                                    <th>SSS</th><th>PHIC</th><th>HDMF</th><th>S.Loan</th><th>H.Loan</th><th>O.Loan</th><th>WTAX</th><th>Penalties</th><th>Lv(U)</th><th style="color:#e11d48;">Total Ded</th>
+                                </tr>
+                            </thead>
+                            <tbody id="batchPreviewBody"></tbody>
+                            <tfoot class="ledger-footer">
+                                <tr>
+                                    <td colspan="21" style="text-align: right; padding-right: 20px;">GRAND TOTAL BATCH NET PAY:</td>
+                                    <td id="batchTotalNet" style="color: #059669; font-size: 15px !important; font-weight: 900; background: #fff;">₱0.00</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="batchTeachPayslipPreview" style="display: none;">
+                    <div style="background-color: #e0f2fe; color: #0284c7; padding: 10px 15px; border-radius: 6px; margin-bottom: 15px; font-size: 13px; font-weight: 600; border: 1px solid #bae6fd;">
+                        <i class="fas fa-info-circle"></i> Note: The first 15 units of full-time instructors are covered by Basic Pay. Part-time instructors are paid entirely per excess hour.
+                    </div>
+
+                    <div class="batch-scroll-container">
+                        <table class="payroll-ledger">
+                            <thead>
+                                <tr>
+                                    <th class="head-info">ID</th>
+                                    <th class="head-info" style="min-width: 150px; max-width: 180px; text-align: left; white-space: normal;">Instructor Name</th>
+                                    <th class="head-info">Base Units</th>
+                                    <th class="head-earn">Total Ex. Hrs</th>
+                                    <th class="head-earn" style="background-color:#dcfce7; color:#166534;">Basic Pay</th>
+                                    <th class="head-earn">Lec Pay</th>
+                                    <th class="head-earn">Lab Pay</th>
+                                    <th class="head-earn">Sub. Pay (+)</th>
+                                    <th class="head-ded">Sub. Ded (-)</th>
+                                    <th class="head-earn">Hol/Adj</th>
+                                    <th class="head-net">TOTAL TEACHING PAY</th>
+                                </tr>
+                            </thead>
+                            <tbody id="batchTeachPreviewBody"></tbody>
+                            <tfoot class="ledger-footer">
+                                <tr>
+                                    <td colspan="10" style="text-align: right; padding-right: 20px;">GRAND TOTAL TEACHING PAY:</td>
+                                    <td id="batchTeachTotalNet" style="color: #059669; font-size: 15px !important; font-weight: 900; background: #fff;">₱0.00</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="employeePayslip" class="payslip-content" style="display: none;">
+                    <h4 class="payslip-header">EARNINGS</h4>
+                    <div class="payslip-row"><span>Basic Pay (Period):</span> <span id="basicSalary">₱0.00</span></div>
+                    <div class="payslip-row"><span style="color: #2e7d32;"><i class="fas fa-check-circle"></i> Approved Leave (With Pay):</span> <span id="leavePayDisplay" class="val-green">0 Days (No Deduction)</span></div>
+                    <div class="payslip-row"><span>De Minimis (Non-Tax):</span> <span id="deMinimis" class="val-green">+ ₱0.00</span></div>
+                    <div class="payslip-row"><span>Holiday Pay:</span> <span id="holidayPayDisplay" class="val-green">+ ₱0.00</span></div>
+                    <div class="payslip-row"><span>Overtime Pay:</span> <span id="otDisplay" class="val-green">+ ₱0.00</span></div>
+                    <div class="payslip-row"><span>Teaching / Substitute Pay:</span> <span id="teachingPayDisplay" class="val-green">+ ₱0.00</span></div>
+                    
+                    <div class="payslip-row"><span>Late Deduction:</span> <span id="lateDisplay" class="val-red">- ₱0.00</span></div>
+                    <div class="payslip-row"><span>Undertime Deduction:</span> <span id="utDisplay" class="val-red">- ₱0.00</span></div>
+                    <div class="payslip-row"><span>Absent Deduction:</span> <span id="absentDed" class="val-red">- ₱0.00</span></div>
+                    <div class="payslip-row"><span>Leave (Without Pay) Deduction:</span> <span id="leaveWithoutPayDisplay" class="val-red">- ₱0.00</span></div>
+                    <div class="payslip-gross"><span>GROSS PAY:</span> <span id="grossPay">₱0.00</span></div>
+                    
+                    <h4 class="payslip-header mt-25">DEDUCTIONS & TAXES</h4>
+                    <div class="payslip-row"><span>SSS Contribution:</span> <span id="sssDed" class="val-red">- ₱0.00</span></div>
+                    <div class="payslip-row"><span>PhilHealth Contribution:</span> <span id="philhealthDed" class="val-red">- ₱0.00</span></div>
+                    <div class="payslip-row"><span>Pag-IBIG Contribution:</span> <span id="pagibigDed" class="val-red">- ₱0.00</span></div>
+                    <div class="payslip-row" style="margin-top: 10px; border-top: 1px dotted #ccc; padding-top: 5px;">
+                        <span>Taxable Income Base:</span> <span id="taxableIncomeBase" style="font-weight: bold;">₱0.00</span>
+                    </div>
+                    <div class="payslip-row"><span>Withholding Tax:</span> <span id="taxDed" class="val-red">- ₱0.00</span></div>
+                    <div class="payslip-row"><span>Loan Deductions:</span> <span id="loanDed" class="val-red">- ₱0.00</span></div>
+                    
+                    <div class="netpay-box"><span>NET PAY:</span> <span id="netPay">₱0.00</span></div>
+                </div>
+
+                <div id="teachingPayslip" class="payslip-content" style="display: none; border:2px dashed #ddd; padding:25px; background: white; box-shadow: inset 0 0 10px rgba(0,0,0,0.02);">
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <h2 style="margin: 0; color: #b71c1c;">TEACHING PAYSLIP</h2>
+                        <p style="margin: 5px 0; color: #666; font-size: 14px;">Emilio Aguinaldo College</p>
+                    </div>
+                    
+                    <div style="background-color: #f0f4f8; padding: 15px; border-radius: 8px; border: 1px solid #cfd8dc; margin-bottom: 20px;">
+                        <h4 style="margin-top: 0; color: #37474f; font-weight: 800; border-bottom: 1px solid #b0bec5; padding-bottom: 8px; margin-bottom: 12px;">
+                            <i class="fas fa-book-open"></i> Full Teaching Load & Subject Units
+                        </h4>
+                        <table style="width: 100%; margin-bottom: 15px; font-size: 13px; background-color: #ffffff; text-align: left; border-collapse: collapse; border: 1px solid #ddd;">
+                            <tr style="background-color: #e3f2fd; color: #1565c0; border-bottom: 2px solid #90caf9;">
+                                <th style="padding: 8px;">Subject Category</th>
+                                <th style="text-align: center; padding: 8px;">Total Units Taught</th>
+                                <th style="text-align: center; padding: 8px;">Payable Units<br><small style="color:#555;" id="thUnitLabel">(Above 15 Basic)</small></th>
+                                <th style="text-align: center; padding: 8px;">Payable Excess Hours</th>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #eee;">
+                                <td style="padding: 8px;"><strong>Lecture</strong> <small style="color:#666;">(1 Unit = 1 Hr)</small></td>
+                                <td style="text-align: center; font-weight: bold; padding: 8px;" id="previewTotLec">0</td>
+                                <td style="text-align: center; color: #d32f2f; font-weight: bold; padding: 8px;" id="previewExcessLec">0</td>
+                                <td style="text-align: center; font-weight: bold; padding: 8px;" id="previewLecHrs">0 hrs</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #eee;">
+                                <td style="padding: 8px;"><strong>Laboratory</strong> <small style="color:#666;">(1 Unit = 3 Hrs)</small></td>
+                                <td style="text-align: center; font-weight: bold; padding: 8px;" id="previewTotLab">0</td>
+                                <td style="text-align: center; color: #d32f2f; font-weight: bold; padding: 8px;" id="previewExcessLab">0</td>
+                                <td style="text-align: center; font-weight: bold; padding: 8px;" id="previewLabHrs">0 hrs</td>
+                            </tr>
+                            
+                            <tr id="gridPreviewSubAdd" style="display: none; background-color: #f1f8e9; border-bottom: 1px solid #eee;">
+                                <td style="padding: 8px; color: #2e7d32;"><strong>Substitute Duty (+)</strong></td>
+                                <td style="text-align: center; font-weight: bold; padding: 8px; color: #2e7d32;">-</td>
+                                <td style="text-align: center; font-weight: bold; padding: 8px; color: #2e7d32;">-</td>
+                                <td style="text-align: center; font-weight: bold; padding: 8px; color: #2e7d32;" id="previewSubDutyHrs">0 hrs</td>
+                            </tr>
+                            <tr id="gridPreviewSubDed" style="display: none; background-color: #ffebee; border-bottom: 1px solid #eee;">
+                                <td style="padding: 8px; color: #b71c1c;"><strong>Faculty Absence Deduction (-)</strong></td>
+                                <td style="text-align: center; font-weight: bold; padding: 8px; color: #b71c1c;">-</td>
+                                <td style="text-align: center; font-weight: bold; padding: 8px; color: #b71c1c;">-</td>
+                                <td style="text-align: center; font-weight: bold; padding: 8px; color: #b71c1c;" id="previewSubDedDutyHrs">0 hrs</td>
+                            </tr>
+
+                            <tr style="background-color: #f1f1f1;">
+                                <td style="text-align: right; color: #424242; padding: 8px;"><strong>GRAND TOTALS:</strong></td>
+                                <td style="text-align: center; font-weight: 800; color: #1565c0; padding: 8px;" id="previewGrandTotUnits">0</td>
+                                <td style="text-align: center; font-weight: 800; color: #b71c1c; padding: 8px;" id="previewGrandExcUnits">0</td>
+                                <td style="text-align: center; font-weight: 800; color: #b71c1c; padding: 8px;" id="previewTotalHrs">0 hrs</td>
+                            </tr>
+                        </table>
+
+                        <div id="basicPayNoticeBox" style="background-color: #fff3cd; color: #856404; padding: 10px; border-left: 4px solid #ffeeba; font-size: 12px; margin-bottom: 5px;"></div>
+                    </div>
+
+                    <div style="background: #fdfdfd; border: 1px dashed #ccc; padding: 15px; border-radius: 5px;">
+                        <h4 style="margin-top: 0; color: #333; font-weight: 800; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 12px;">Earnings & Deductions Breakdown</h4>
+                        
+                        <div id="rowPreviewAdmin" style="display: flex; justify-content: space-between; margin-bottom: 8px; background-color: #f8fafc; padding: 5px; border-radius: 4px;">
+                            <span style="color: #0f172a; font-weight: bold;">Basic Salary <br><small style="color:#475569; font-weight: normal;" id="previewBasicDetail"></small></span>
+                            <span id="previewAdminPay" style="font-weight: 900; color: #0f172a;">₱0.00</span>
+                        </div>
+                        <div id="rowPreviewLec" style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <span>Excess Lecture Pay <br><span style="color:#555; font-size: 11px;" id="previewLecRateDisplay"></span></span>
+                            <span id="previewLecPay" style="font-weight: 600;">₱0.00</span>
+                        </div>
+                        <div id="rowPreviewLab" style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <span>Excess Lab Pay <br><span style="color:#555; font-size: 11px;" id="previewLabRateDisplay"></span></span>
+                            <span id="previewLabPay" style="font-weight: 600;">₱0.00</span>
+                        </div>
+                        
+                        <div id="rowPreviewSub" style="display: none; justify-content: space-between; margin-bottom: 8px; background-color: #f1f8e9; padding: 5px; border-radius: 4px;">
+                            <span>Substitute Pay (Addition) <br><span style="color:#555; font-size: 11px;" id="previewSubRateDisplay"></span></span>
+                            <span id="previewSubPay" style="font-weight: 600; color:#2e7d32;">+ ₱0.00</span>
+                        </div>
+                        <div id="rowPreviewSubDed" style="display: none; justify-content: space-between; margin-bottom: 8px; background-color: #ffebee; padding: 5px; border-radius: 4px;">
+                            <span style="color: #d32f2f;">Faculty Absence Deduction (-) <br><span style="color:#d32f2f; font-size: 11px;" id="previewSubDedRateDisplay"></span></span>
+                            <span id="previewSubDed" style="font-weight: 600; color: #d32f2f;">- ₱0.00</span>
+                        </div>
+
+                        <div id="rowPreviewRle" style="display: none; justify-content: space-between; margin-bottom: 8px;">
+                            <span>RLE Excess Pay</span>
+                            <span id="previewRlePay" style="font-weight: 600;">₱0.00</span>
+                        </div>
+                        <div id="rowPreviewSgd" style="display: none; justify-content: space-between; margin-bottom: 8px;">
+                            <span>SGD Pay</span>
+                            <span id="previewSgdPay" style="font-weight: 600;">₱0.00</span>
+                        </div>
+                        <div id="rowPreviewTut" style="display: none; justify-content: space-between; margin-bottom: 8px;">
+                            <span>Tutorial Pay</span>
+                            <span id="previewTutPay" style="font-weight: 600;">₱0.00</span>
+                        </div>
+                        <div id="rowPreviewHon" style="display: none; justify-content: space-between; margin-bottom: 8px;">
+                            <span>Honorarium</span>
+                            <span id="previewHonPay" style="font-weight: 600;">₱0.00</span>
+                        </div>
+                        <div id="rowPreviewSupp" style="display: none; justify-content: space-between; margin-bottom: 8px;">
+                            <span>Supplemental Pay</span>
+                            <span id="previewSuppPay" style="font-weight: 600;">₱0.00</span>
+                        </div>
+                        <div id="rowPreviewHoliday" style="display: none; justify-content: space-between; margin-bottom: 8px;">
+                            <span>Holiday Pay</span>
+                            <span id="previewHoliday" style="font-weight: 600;">₱0.00</span>
+                        </div>
+                        <div id="rowPreviewAdj" style="display: none; justify-content: space-between; margin-bottom: 8px;">
+                            <span>Adjustments (+)</span>
+                            <span id="previewAdjPay" style="font-weight: 600;">₱0.00</span>
+                        </div>
+
+                        <div id="teachingDeductionsDivider" style="display: none; border-top: 1px dashed #ccc; margin: 10px 0;"></div>
+
+                        <div id="rowPreviewManDed" style="display: none; justify-content: space-between; margin-bottom: 8px; color: #d32f2f;">
+                            <span>Manual Deduction (-) <br><span style="color:#d32f2f; font-size: 11px;" id="previewManDedRateDisplay"></span></span>
+                            <span id="previewManDed" style="font-weight: 600;">- ₱0.00</span>
+                        </div>
+                        <div id="rowPreviewSusp" style="display: none; justify-content: space-between; margin-bottom: 8px; color: #d32f2f;">
+                            <span>Suspension Deduction (-)</span>
+                            <span id="previewSuspDed" style="font-weight: 600;">- ₱0.00</span>
+                        </div>
+                        
+                        <hr style="border-top: 2px solid #2e7d32; margin: 15px 0;">
+                        
+                        <div style="display: flex; justify-content: space-between; font-size: 18px; font-weight: 900; color: #2e7d32;">
+                            <span>TOTAL TEACHING EARNINGS</span>
+                            <span id="previewTotalEarnings">₱0.00</span>
+                        </div>
+                    </div>
+
+                    <button onclick="window.print()" class="btn-gold btn-print" style="margin-top: 20px; width: 100%;">
+                        <i class="fas fa-print"></i> Print / Save as PDF
+                    </button>
+                </div>
+
+            </div>
+        </div>
+        
+        <div id="confirmModal" class="modal" style="display: none; position: fixed; z-index: 99999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); align-items: center; justify-content: center;">
+            <div class="modal-content mod-sm" style="background: white; width: 100%; max-width: 400px; text-align: center; border-radius: 8px; border-top: 4px solid #f39c12; padding: 0; box-shadow: 0 5px 15px rgba(0,0,0,0.3); margin: 0; position: relative;">
+                <div class="mod-header" style="display: flex; justify-content: center; background-color: #fffaf0; border-bottom: 1px solid #f5e6d3; padding: 15px;">
+                    <h3 style="margin: 0; color: #d68910;"><i class="fas fa-question-circle"></i> Confirmation</h3>
+                </div>
+                <div class="mod-body" style="padding: 20px;">
+                    <p id="confirmModalMessage" style="font-size: 15px; color: #444; margin-bottom: 25px; line-height: 1.5;">Are you sure?</p>
+                    <div style="display: flex; justify-content: center; gap: 15px;">
+                        <button id="btnConfirmCancel" style="padding: 8px 20px; border-radius: 5px; border: 1px solid #ccc; background: #f8f9fa; color: #333; cursor: pointer; font-weight: 600;">Cancel</button>
+                        <button id="btnConfirmOk" style="padding: 8px 20px; border-radius: 5px; background-color: #27ae60; color: white; border: none; cursor: pointer; font-weight: 600;"><i class="fas fa-check"></i> Yes, Proceed</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="alertModal" class="modal" style="display: none; position: fixed; z-index: 99999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); align-items: center; justify-content: center;">
+            <div class="modal-content mod-sm" style="background: white; width: 100%; max-width: 400px; text-align: center; border-radius: 8px; padding: 0; box-shadow: 0 5px 15px rgba(0,0,0,0.3); margin: 0; position: relative; overflow: hidden;">
+                <div id="alertModalHeader" class="mod-header" style="display: flex; justify-content: center; padding: 15px; border-bottom: 1px solid #eee;">
+                    <h3 id="alertModalTitle" style="margin: 0; font-size: 18px;"><i class="fas fa-info-circle"></i> Notification</h3>
+                </div>
+                <div class="mod-body" style="padding: 20px;">
+                    <p id="alertModalMessage" style="font-size: 15px; color: #444; margin-bottom: 25px; line-height: 1.5;"></p>
+                    <div style="display: flex; justify-content: center;">
+                        <button id="btnAlertOk" style="padding: 10px 40px; border-radius: 5px; background-color: #0284c7; color: white; border: none; cursor: pointer; font-weight: bold; font-size: 14px;">OK</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+<th:block id="extra-scripts">
+        <script th:src="@{/js/script_payroll.js?v=4}"></script>
+    </th:block>
+</body>
+</html>

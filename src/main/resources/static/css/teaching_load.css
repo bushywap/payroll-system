@@ -1,0 +1,408 @@
+/* =========================================
+   1. SPECIFIC COMPONENT STYLES
+   ========================================= */
+.glass-card h3 {
+    color: #3e0000;
+    border-bottom: 2px solid #eef0f2;
+    padding-bottom: 12px;
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 18px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.glass-card h3 i { 
+    color: #d32f2f; 
+    margin-right: 8px; 
+}
+
+/* =========================================
+   2. UPLOADS & FILTERS
+   ========================================= */
+.control-panel {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+    align-items: flex-end;
+}
+
+.upload-area {
+    flex: 1;
+    min-width: 300px;
+    padding-right: 20px;
+    border-right: 2px dashed #ddd;
+}
+
+.upload-form { 
+    display: flex; 
+    align-items: center; 
+    gap: 15px; 
+    width: 100%; 
+    flex-wrap: wrap;
+}
+
+.upload-title { 
+    font-weight: 800; 
+    color: #3e0000; 
+    font-size: 13px; 
+    text-transform: uppercase; 
+    width: 100%;
+}
+
+.excel-icon { 
+    color: #27ae60; 
+    margin-right: 5px; 
+}
+
+.upload-area input[type="file"] { 
+    padding: 10px; 
+    background: #fff; 
+    border: 1px solid #ddd; 
+    border-radius: 6px; 
+    cursor: pointer; 
+    font-size: 14px; 
+    flex: 1;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.upload-area input[type="file"]:focus {
+    border-color: #d32f2f;
+    outline: none;
+    box-shadow: 0 4px 12px rgba(211, 47, 47, 0.15);
+}
+
+.filter-area { 
+    display: flex; 
+    flex-wrap: wrap; 
+    gap: 20px; 
+    align-items: flex-end; 
+    flex: 2;
+}
+
+.filter-group { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 6px; 
+    flex: 1; 
+    min-width: 180px; 
+}
+
+.filter-search { 
+    flex: 2; 
+}
+
+.filter-group label { 
+    font-size: 12px; 
+    font-weight: 800; 
+    color: #3e0000; 
+    text-transform: uppercase;
+}
+
+.filter-group select, .filter-group input[type="text"] { 
+    padding: 10px 14px; 
+    border: 1px solid #ddd; 
+    border-radius: 6px; 
+    font-size: 14px; 
+    outline: none; 
+    width: 100%; 
+    background-color: #fff;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.filter-group select:focus, .filter-group input:focus { 
+    border-color: #d32f2f; 
+    box-shadow: 0 4px 12px rgba(211, 47, 47, 0.15); 
+}
+
+.search-wrapper { 
+    display: flex; 
+    gap: 5px; 
+    width: 100%; 
+}
+
+.search-wrapper input { 
+    flex: 1; 
+}
+
+/* =========================================
+   3. BUTTONS & TABLES
+   ========================================= */
+.btn-red { 
+    background-color: #d32f2f; 
+    color: white; border: none; 
+    padding: 12px 20px; 
+    border-radius: 6px; 
+    cursor: pointer; 
+    font-weight: 600; 
+    transition: 0.3s; 
+}
+
+.btn-red:hover { background-color: #8b0000; }
+
+.btn-gold { 
+    background-color: #d4af37; 
+    color: #3e0000; 
+    border: none; 
+    padding: 12px 20px; 
+    border-radius: 6px; 
+    cursor: pointer; 
+    font-weight: 800; 
+    transition: 0.3s; 
+    display: flex; 
+    align-items: center; 
+    gap: 8px;
+}
+
+.btn-gold:hover { background-color: #bfa131; }
+
+.table-responsive { 
+    width: 100%;
+    overflow-x: auto; 
+    overflow-y: visible; 
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 10px; 
+}
+
+.custom-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.custom-table th {
+    background-color: #f8f9fa;
+    color: #3e0000;
+    padding: 15px;
+    font-weight: 800;
+    font-size: 13px;
+    text-transform: uppercase;
+    border-bottom: 2px solid #ddd;
+}
+
+.custom-table td {
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    color: #444;
+    font-size: 14px;
+}
+
+.clickable-row { cursor: pointer; transition: background-color 0.2s; }
+.clickable-row:hover { background-color: transparent; }
+
+.val-red { color: #d32f2f; font-weight: bold; }
+.val-green { color: #27ae60; font-weight: bold; }
+.val-blue { color: #3b82f6; font-weight: bold; }
+
+.status-badge { 
+    padding: 4px 10px; 
+    border-radius: 6px; 
+    font-size: 12px; 
+    font-weight: 600; 
+    background-color: #e2e8f0; 
+    color: #475569;
+}
+
+.empty-row { 
+    text-align: center; 
+    color: #888; 
+    padding: 30px !important; 
+    font-style: italic; 
+}
+
+/* =========================================
+   4. TABS, ALERTS & UTILS
+   ========================================= */
+.attendance-toggle-container {
+    display: flex;
+    align-items: center;
+    margin-top: 15px;
+    border-bottom: 2px solid #ddd;
+    padding-bottom: 0;
+}
+
+.btn-tab {
+    background: none;
+    border: none;
+    padding: 10px 20px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s ease;
+    margin-right: 5px;
+}
+
+.active-tab {
+    color: #d32f2f;
+    border-bottom: 3px solid #d32f2f;
+}
+
+.inactive-tab {
+    color: #888;
+}
+
+.inactive-tab:hover {
+    color: #d32f2f;
+    background-color: #f9f9f9;
+}
+
+/* Alerts */
+.alert-success { background: #d4edda; color: #155724; padding: 12px 15px; border-radius: 5px; margin-bottom: 20px; border-left: 5px solid #28a745; font-weight: 600; }
+.alert-danger { background: #f8d7da; color: #721c24; padding: 12px 15px; border-radius: 5px; margin-bottom: 20px; border-left: 5px solid #dc3545; font-weight: 600; }
+.alert-icon { margin-right: 8px; }
+
+/* Utilities */
+.hidden-view { display: none; }
+.mb-20 { margin-bottom: 20px; }
+.no-margin { margin: 0; }
+.padding-20 { padding: 20px; text-align: center; }
+
+.section-header { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    margin-bottom: 15px; 
+}
+
+.refresh-btn { padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; }
+
+/* Payslip Elements */
+.total-hrs-highlight { font-weight: 800; color: #b71c1c; }
+.payslip-btn { padding: 6px 12px; font-size: 12px; border: none; cursor: pointer; border-radius: 4px; }
+
+
+/* =========================================
+   5. MODALS (PAYSLIP & SCHEDULE SUMMARY)
+   ========================================= */
+.modal {
+    display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; 
+    background-color: rgba(0,0,0,0.6); backdrop-filter: blur(3px); 
+}
+
+/* Standard Modal Config */
+.modal-content {
+    background-color: #ffffff; margin: 4vh auto; padding: 30px; border-radius: 12px; 
+    position: relative; max-width: 500px; width: 90%;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3); font-family: 'Inter', sans-serif;
+}
+
+/* Large Model Config */
+.modal-content.mod-lg {
+    max-width: 1250px !important; 
+    width: 96%;
+}
+
+/* Payslip Specifics */
+.payslip-modal-content {
+    background-color: #ffffff; margin: 5% auto; padding: 30px; border-radius: 12px; 
+    max-width: 450px; font-family: 'Inter', sans-serif;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3); border-top: 5px solid #8b0000;
+}
+
+.payslip-header { text-align: center; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px; margin-bottom: 15px; }
+.payslip-logo { height: 50px; margin-bottom: 10px; }
+.payslip-title { margin: 0; color: #333; font-size: 18px; font-weight: 800; }
+.payslip-period { margin: 5px 0 0; color: #666; font-size: 14px; }
+.payslip-footer { text-align: center; margin-top: 25px; }
+
+.close-btn { 
+    color: #aaa; 
+    float: right; 
+    font-size: 28px; 
+    font-weight: bold; 
+    cursor: pointer; 
+    margin-top: -10px; 
+    transition: 0.2s; 
+    user-select: none; /* Fixed cursor issue */
+}
+.close-btn:hover { color: #d32f2f; }
+.print-btn { border: none; cursor: pointer; padding: 10px 20px; font-size: 14px; border-radius: 5px; }
+
+
+/* =========================================
+   6. EDIT LOAD MODAL FORMS
+   ========================================= */
+.edit-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    margin-bottom: 15px;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.input-group.full-width {
+    grid-column: 1 / -1;
+}
+
+.input-group label {
+    font-size: 13px;
+    font-weight: 700;
+    color: #444;
+}
+
+.input-group input {
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    background-color: #fcfcfc;
+}
+
+.input-group input:focus {
+    border-color: #d4af37;
+    outline: none;
+    background-color: #fff;
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
+}
+
+.badge-ft {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 11px;
+}
+
+.badge-pt {
+    background-color: #fff3e0;
+    color: #e65100;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 11px;
+}
+
+/* Schedule Modal Centering & Scrolling Fixes */
+.schedule-modal-content {
+    border-top: 5px solid #cc0000 !important; 
+    width: 90% !important; 
+    max-width: 1200px !important; 
+    background-color: #ffffff !important;
+    
+    /* Centralize on screen securely */
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    margin: 0 !important;
+    
+    /* Lock height and setup flex inner scrolling */
+    max-height: 90vh !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important; 
+}
