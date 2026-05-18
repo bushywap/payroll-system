@@ -25,6 +25,9 @@ public class PayrollService {
     @Autowired private TeachingLoadRepository facultyLoadRepository; 
     
     @Autowired private SubstituteRecordRepository substituteRecordRepository; 
+    
+    // ✅ ADDED LOAN REPOSITORY
+    @Autowired private LoanRepository loanRepository; 
 
     private boolean isEmployeePartTime(Employee emp) {
         if (emp == null) return false;
@@ -491,6 +494,36 @@ public class PayrollService {
         return null;
     }
 
+    // ✅ ADDED HELPER METHOD TO AUTOMATICALLY FIND AND APPLY ACTIVE LOANS
+    private void applyAutomatedLoans(Payroll payroll, Employee emp) {
+        List<Loan> activeLoans = loanRepository.findActiveLoansByEmployeeId(emp.getId());
+        
+        BigDecimal sssL = BigDecimal.ZERO;
+        BigDecimal hdmfL = BigDecimal.ZERO;
+        BigDecimal otherL = BigDecimal.ZERO;
+
+        for (Loan loan : activeLoans) {
+            // Deduct only up to the remaining balance
+            BigDecimal deduction = loan.getDeductionPerCutoff();
+            if (deduction.compareTo(loan.getRemainingBalance()) > 0) {
+                deduction = loan.getRemainingBalance();
+            }
+
+            String type = loan.getLoanType().toUpperCase();
+            if (type.contains("SSS")) {
+                sssL = sssL.add(deduction);
+            } else if (type.contains("PAG-IBIG") || type.contains("HDMF")) {
+                hdmfL = hdmfL.add(deduction);
+            } else {
+                otherL = otherL.add(deduction);
+            }
+        }
+
+        payroll.setSssLoan((payroll.getSssLoan() != null ? payroll.getSssLoan() : BigDecimal.ZERO).add(sssL));
+        payroll.setHdmfLoan((payroll.getHdmfLoan() != null ? payroll.getHdmfLoan() : BigDecimal.ZERO).add(hdmfL));
+        payroll.setLoanDeductions((payroll.getLoanDeductions() != null ? payroll.getLoanDeductions() : BigDecimal.ZERO).add(otherL));
+    }
+
     public Payroll calculatePayrollPreview(Employee emp, LocalDate start, LocalDate end, 
             BigDecimal sssLoanInput, BigDecimal hdmfLoanInput, 
             BigDecimal adjustmentInput, BigDecimal honorariumInput, BigDecimal longevityInput) {
@@ -629,13 +662,18 @@ public class PayrollService {
         generatedPayroll.setSssLoan(appliedSssLoan);
         generatedPayroll.setHdmfLoan(appliedHdmfLoan); 
         
+        // ✅ ADDED CALL TO APPLY ACTIVE AUTOMATED LOANS
+        applyAutomatedLoans(generatedPayroll, emp);
+        
         computeTaxableIncomeAndTax(generatedPayroll); 
         
         BigDecimal mDed = generatedPayroll.getManualDeduction() != null ? generatedPayroll.getManualDeduction() : BigDecimal.ZERO; 
         BigDecimal net = generatedPayroll.getGrossIncome() != null ? generatedPayroll.getGrossIncome() : BigDecimal.ZERO;
         net = net.subtract(generatedPayroll.getGovtContributions() != null ? generatedPayroll.getGovtContributions() : BigDecimal.ZERO)
                  .subtract(generatedPayroll.getWithholdingTax() != null ? generatedPayroll.getWithholdingTax() : BigDecimal.ZERO)
-                 .subtract(appliedSssLoan).subtract(appliedHdmfLoan)
+                 .subtract(generatedPayroll.getSssLoan() != null ? generatedPayroll.getSssLoan() : BigDecimal.ZERO)
+                 .subtract(generatedPayroll.getHdmfLoan() != null ? generatedPayroll.getHdmfLoan() : BigDecimal.ZERO)
+                 .subtract(generatedPayroll.getLoanDeductions() != null ? generatedPayroll.getLoanDeductions() : BigDecimal.ZERO)
                  .subtract(mDed); 
                  
         generatedPayroll.setNetPay(net.compareTo(BigDecimal.ZERO) < 0 ? BigDecimal.ZERO : net);
@@ -772,6 +810,9 @@ public class PayrollService {
         generatedPayroll.setTeachingPayRecord(tp);
         generatedPayroll.setLoanDeductions(safeLoans);
         
+        // ✅ ADDED CALL TO APPLY ACTIVE AUTOMATED LOANS
+        applyAutomatedLoans(generatedPayroll, emp);
+        
         BigDecimal rawMinuteRate = actualRate.divide(new BigDecimal("60"), 6, RoundingMode.HALF_UP);
         BigDecimal exactMinuteRate = rawMinuteRate.setScale(2, RoundingMode.HALF_UP);
         BigDecimal dailyRate = actualRate.multiply(new BigDecimal("8"));
@@ -793,7 +834,12 @@ public class PayrollService {
         BigDecimal withTax = generatedPayroll.getWithholdingTax() != null ? generatedPayroll.getWithholdingTax() : BigDecimal.ZERO;
         BigDecimal mDed = generatedPayroll.getManualDeduction() != null ? generatedPayroll.getManualDeduction() : BigDecimal.ZERO; 
         
-        BigDecimal net = gross.subtract(govt).subtract(withTax).subtract(safeLoans).subtract(mDed); 
+        BigDecimal net = gross.subtract(govt).subtract(withTax)
+                 .subtract(generatedPayroll.getSssLoan() != null ? generatedPayroll.getSssLoan() : BigDecimal.ZERO)
+                 .subtract(generatedPayroll.getHdmfLoan() != null ? generatedPayroll.getHdmfLoan() : BigDecimal.ZERO)
+                 .subtract(generatedPayroll.getLoanDeductions() != null ? generatedPayroll.getLoanDeductions() : BigDecimal.ZERO)
+                 .subtract(mDed); 
+                 
         generatedPayroll.setNetPay(net.compareTo(BigDecimal.ZERO) < 0 ? BigDecimal.ZERO : net);
 
         return generatedPayroll;
@@ -806,10 +852,35 @@ public class PayrollService {
         BigDecimal govt = payroll.getGovtContributions() != null ? payroll.getGovtContributions() : BigDecimal.ZERO;
         BigDecimal withTax = payroll.getWithholdingTax() != null ? payroll.getWithholdingTax() : BigDecimal.ZERO;
         BigDecimal mDed = payroll.getManualDeduction() != null ? payroll.getManualDeduction() : BigDecimal.ZERO; 
-        BigDecimal loans = payroll.getLoanDeductions() != null ? payroll.getLoanDeductions() : BigDecimal.ZERO;
         
-        BigDecimal net = gross.subtract(govt).subtract(withTax).subtract(loans).subtract(mDed); 
+        // ✅ NEW: ADD ALL LOANS FOR NET PAY COMPUTATION
+        BigDecimal sssL = payroll.getSssLoan() != null ? payroll.getSssLoan() : BigDecimal.ZERO;
+        BigDecimal hdmfL = payroll.getHdmfLoan() != null ? payroll.getHdmfLoan() : BigDecimal.ZERO;
+        BigDecimal othL = payroll.getLoanDeductions() != null ? payroll.getLoanDeductions() : BigDecimal.ZERO;
+        BigDecimal totalLoans = sssL.add(hdmfL).add(othL);
+        
+        BigDecimal net = gross.subtract(govt).subtract(withTax).subtract(totalLoans).subtract(mDed); 
         payroll.setNetPay(net.compareTo(BigDecimal.ZERO) < 0 ? BigDecimal.ZERO : net);
+
+        // ✅ NEW: DEDUCT LOAN BALANCES PERMANENTLY ONLY ON FIRST SAVE
+        if (payroll.getId() == null && payroll.getEmployee() != null) {
+            List<Loan> activeLoans = loanRepository.findActiveLoansByEmployeeId(payroll.getEmployee().getId());
+            for(Loan loan : activeLoans) {
+                BigDecimal deduction = loan.getDeductionPerCutoff();
+                if (deduction.compareTo(loan.getRemainingBalance()) > 0) {
+                    deduction = loan.getRemainingBalance();
+                }
+                
+                loan.setRemainingBalance(loan.getRemainingBalance().subtract(deduction));
+                
+                // If paid off, mark as COMPLETED
+                if (loan.getRemainingBalance().compareTo(BigDecimal.ZERO) <= 0) {
+                    loan.setRemainingBalance(BigDecimal.ZERO);
+                    loan.setStatus("COMPLETED");
+                }
+                loanRepository.save(loan);
+            }
+        }
 
         if (payroll.getTeachingPayRecord() != null && payroll.getTeachingPayRecord().getId() != null) {
             TeachingPay managedTp = teachingPayRepository.save(payroll.getTeachingPayRecord());

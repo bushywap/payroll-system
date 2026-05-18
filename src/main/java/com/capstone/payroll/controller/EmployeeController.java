@@ -114,15 +114,5 @@ public class EmployeeController {
         employeeRepository.save(emp);
         return ResponseEntity.ok("Compensation updated successfully!");
     }
-    
-    @GetMapping("/api/dashboard/stats")
-    @ResponseBody
-    public java.util.Map<String, Long> getDashboardStats() {
-        return java.util.Map.of(
-            "totalEmployees", employeeRepository.count(),
-            "totalDepartments", departmentRepository.count(),
-            "totalPayrolls", payrollRepository.count(),
-            "totalTeachingLoads", teachingLoadRepository.count()
-        );
-    }
+   
 }	

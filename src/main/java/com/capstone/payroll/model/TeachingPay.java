@@ -301,7 +301,8 @@ public class TeachingPay {
         this.excessRleHours = totalRleHrs - deductedRleHours;
 
         this.totalExcessHours = this.excessLecHours + this.excessLabHours + this.excessRleHours;
-        this.absentDeductionHours = deficitUnits;
+        
+        // DELETED THIS LINE HERE: this.absentDeductionHours = deficitUnits;
 
         // --- COMPUTING PAY ---
         this.lecPay = this.hourlyRate.multiply(BigDecimal.valueOf(this.excessLecHours)).setScale(2, RoundingMode.HALF_UP);
@@ -347,7 +348,8 @@ public class TeachingPay {
                 .add(this.makeUpPay) 
                 .add(this.holidayPay)
                 .subtract(this.suspensionDeduction)
-                .subtract(manualDeductionAmount);
+                .subtract(manualDeductionAmount)
+                .subtract(this.absentDeductionPay); // ✅ FIX: ADDED THIS SUBTRACTION
                 
         this.totalTeachingPay = this.totalTeachingPay.max(BigDecimal.ZERO);
     }

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" 
+      th:replace="~{layout :: page(~{::title}, 'loans', ~{::th:block#extra-head}, ~{::.main-content}, ~{::th:block#extra-scripts})}">
+<head>
+    <title>Loan Management | HR Panel</title>
+    <th:block id="extra-head">
+        <style>
+            .main-content { padding: 25px; }
+            .btn-primary { background: #0284c7; color: white; padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+            .btn-info { background: #10b981; color: white; padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; transition: 0.2s;}
+            .btn-info:hover { background: #059669; }
+            .data-table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+            .data-table th, .data-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #e2e8f0; font-size: 14px; }
+            .data-table th { background: #f8fafc; color: #475569; font-weight: bold; text-transform: uppercase; font-size: 12px;}
+            .status-active { background: #dcfce7; color: #166534; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: bold; }
+            .status-done { background: #f1f5f9; color: #64748b; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: bold; }
+            .modal-content input, .modal-content select { width: 100%; padding: 10px; margin-top: 5px; margin-bottom: 15px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; }
+            
+            /* Schedule Table Styling */
+            .schedule-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+            .schedule-table th, .schedule-table td { padding: 10px; text-align: center; border: 1px solid #e2e8f0; font-size: 13px; }
+            .schedule-table th { background: #f1f5f9; color: #475569; position: sticky; top: 0;}
+        </style>
+    </th:block>
+</head>
+<body>
+    <div class="main-content">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="color: #b71c1c; margin: 0;"><i class="fas fa-hand-holding-usd"></i> Employee Loans Management</h2>
+            <button class="btn-primary" onclick="document.getElementById('addLoanModal').style.display='block'">
+                <i class="fas fa-plus"></i> Grant New Loan
+            </button>
+        </div>
+
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Employee Name</th>
+                    <th>Loan Type</th>
+                    <th>Date Granted</th>
+                    <th>Total Amount</th>
+                    <th>Ded. Per Cut-off</th>
+                    <th>Remaining Balance</th>
+                    <th>Status</th>
+                    <th>Action</th> </tr>
+            </thead>
+            <tbody>
+                <tr th:each="l : ${loans}">
+                    <td th:text="${l.employee.firstName + ' ' + l.employee.lastName}" style="font-weight: bold; color: #1e293b;"></td>
+                    <td th:text="${l.loanType}"></td>
+                    <td th:text="${l.dateGranted}"></td>
+                    <td th:text="'₱' + ${#numbers.formatDecimal(l.totalAmount, 1, 'COMMA', 2, 'POINT')}"></td>
+                    <td th:text="'₱' + ${#numbers.formatDecimal(l.deductionPerCutoff, 1, 'COMMA', 2, 'POINT')}" style="color: #d32f2f;"></td>
+                    <td th:text="'₱' + ${#numbers.formatDecimal(l.remainingBalance, 1, 'COMMA', 2, 'POINT')}" style="font-weight: bold; color: #0284c7;"></td>
+                    <td>
+                        <span th:class="${l.status == 'ACTIVE' ? 'status-active' : 'status-done'}" th:text="${l.status}"></span>
+                    </td>
+                    <td>
+                        <button class="btn-info" th:onclick="'viewBreakdown(' + ${l.id} + ')'" title="View Payment Schedule">
+                            <i class="fas fa-list"></i> Schedule
+                        </button>
+                    </td>
+                </tr>
+                <tr th:if="${loans.empty}">
+                    <td colspan="8" style="text-align: center; color: #64748b; padding: 20px;">No loans found in the system.</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div id="addLoanModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
+            <div class="modal-content" style="max-width: 450px; margin: 10vh auto; padding: 30px; background: white; border-radius: 12px; border-top: 5px solid #0284c7;">
+                <span onclick="document.getElementById('addLoanModal').style.display='none'" style="float: right; cursor: pointer; font-size: 24px; color: #64748b;">&times;</span>
+                <h3 style="margin-top: 0; color: #0284c7;"><i class="fas fa-file-invoice-dollar"></i> Issue New Loan</h3>
+                
+                <form th:action="@{/loans/save}" method="post">
+                    <label><strong>Select Employee:</strong></label>
+                    <select name="employeeId" required>
+                        <option value="">-- Choose Employee --</option>
+                        <option th:each="emp : ${employees}" th:value="${emp.id}" th:text="${emp.firstName + ' ' + emp.lastName}"></option>
+                    </select>
+
+                    <label><strong>Loan Type / Description:</strong></label>
+                    <input type="text" name="loanType" placeholder="e.g. SSS Salary Loan, Cash Advance" required>
+
+                    <label><strong>Total Loan Amount (₱):</strong></label>
+                    <input type="number" name="totalAmount" step="0.01" min="1" placeholder="e.g. 10000" required>
+
+                    <label><strong>Deduction Per Cut-Off (₱):</strong></label>
+                    <input type="number" name="deductionPerCutoff" step="0.01" min="1" placeholder="e.g. 500" required>
+
+                    <button type="submit" class="btn-primary" style="width: 100%; margin-top: 15px;"><i class="fas fa-save"></i> Save Loan Record</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="breakdownModal" class="modal" style="display: none; position: fixed; z-index: 1050; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
+            <div class="modal-content" style="max-width: 550px; margin: 5vh auto; padding: 25px; background: white; border-radius: 12px; max-height: 85vh; overflow-y: auto;">
+                <span onclick="document.getElementById('breakdownModal').style.display='none'" style="float: right; cursor: pointer; font-size: 24px; color: #64748b;">&times;</span>
+                <h3 style="margin-top: 0; color: #10b981;"><i class="fas fa-calendar-check"></i> Projected Loan Schedule</h3>
+                
+                <div style="background: #f8fafc; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #10b981;">
+                    <p style="margin: 0 0 5px 0;"><strong>Loan Type:</strong> <span id="bdLoanType" style="color: #0284c7; font-weight: bold;"></span></p>
+                    <p style="margin: 0;"><strong>Total Amount:</strong> ₱<span id="bdTotalAmt" style="font-weight: bold;"></span></p>
+                </div>
+
+                <table class="schedule-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Target Date</th>
+                            <th>Deduction</th>
+                            <th>Remaining Bal.</th>
+                        </tr>
+                    </thead>
+                    <tbody id="breakdownBody">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <th:block id="extra-scripts">
+        <script>
+            function viewBreakdown(loanId) {
+                const contextPath = document.querySelector('meta[name="context-path"]')?.getAttribute('content') || '';
+                const basePath = contextPath === '/' ? '' : contextPath;
+
+                fetch(basePath + '/api/loans/' + loanId + '/breakdown')
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById('bdLoanType').innerText = data.loanType;
+                        document.getElementById('bdTotalAmt').innerText = parseFloat(data.totalAmount).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+                        const tbody = document.getElementById('breakdownBody');
+                        tbody.innerHTML = '';
+
+                        data.schedule.forEach(row => {
+                            const tr = document.createElement('tr');
+                            tr.innerHTML = `
+                                <td>${row.no}</td>
+                                <td style="font-weight: bold; color: #475569;">${row.date}</td>
+                                <td style="color: #d32f2f;">- ₱${parseFloat(row.deduction).toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+                                <td style="color: #0284c7; font-weight: bold;">₱${parseFloat(row.balance).toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+                            `;
+                            tbody.appendChild(tr);
+                        });
+
+                        document.getElementById('breakdownModal').style.display = 'block';
+                    })
+                    .catch(error => {
+                        console.error("Error fetching breakdown:", error);
+                        alert("Could not load schedule.");
+                    });
+            }
+        </script>
+    </th:block>
+</body>
+</html>

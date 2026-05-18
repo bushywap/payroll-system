@@ -6,11 +6,13 @@ import com.capstone.payroll.model.TeachingPay;
 import com.capstone.payroll.model.TeachingLoad;
 import com.capstone.payroll.model.SubstituteRecord;
 import com.capstone.payroll.model.Payroll;
+import com.capstone.payroll.model.Attendance;
 import com.capstone.payroll.repository.DepartmentRepository;
 import com.capstone.payroll.repository.EmployeeRepository;
 import com.capstone.payroll.repository.TeachingPayRepository;
 import com.capstone.payroll.repository.TeachingLoadRepository;
 import com.capstone.payroll.repository.SubstituteRecordRepository;
+import com.capstone.payroll.repository.AttendanceRepository;
 import com.capstone.payroll.service.ExcelHelper;
 import com.capstone.payroll.service.TeachingLoadService;
 import com.capstone.payroll.service.PayrollService;
@@ -38,7 +40,7 @@ public class TeachingPayController {
     @Autowired private DepartmentRepository departmentRepository;
     @Autowired private TeachingPayRepository teachingPayRepository;
     @Autowired private EmployeeRepository employeeRepository;
-    
+    @Autowired private AttendanceRepository attendanceRepository; // <--- ADDED ATTENDANCE REPO
     @Autowired private PayrollService payrollService; 
 
     private void syncTeachingPaysForPeriod(LocalDate start, LocalDate end) {
@@ -52,10 +54,52 @@ public class TeachingPayController {
             try {
                 BigDecimal hourly = emp.getHourlyRate() != null ? emp.getHourlyRate() : BigDecimal.ZERO;
                 
+                // ====================================================================
+                // NEW: AUTOMATIC ABSENCE DETECTION LOGIC
+                // ====================================================================
+                double totalAbsentHours = 0.0;
+                List<TeachingLoad> loads = teachingLoadRepository.findByEmployeeId(emp.getId());
+                List<Attendance> attendances = attendanceRepository.findByEmployeeIdAndDateBetween(String.valueOf(emp.getId()), start, end);
+                
+                for (LocalDate date = start; !date.isAfter(end); date = date.plusDays(1)) {
+                    String dayName = date.getDayOfWeek().name().substring(0, 3).toUpperCase();
+                    
+                    boolean hasClass = false;
+                    double hoursForDay = 0.0;
+                    
+                    // Check if faculty has a class on this specific day
+                    for (TeachingLoad load : loads) {
+                        if (load.getDayOfWeek() != null && load.getDayOfWeek().toUpperCase().contains(dayName)) {
+                            hasClass = true;
+                            int sections = load.getNoOfSections() > 0 ? load.getNoOfSections() : 1;
+                            String[] meetingDays = load.getDayOfWeek().split(",");
+                            int daysPerWeek = meetingDays.length > 0 ? meetingDays.length : 1;
+                            
+                            double classLec = (load.getLectureUnits() / daysPerWeek) * 1.0 * sections;
+                            double classLab = (load.getLabUnits() / daysPerWeek) * 3.0 * sections;
+                            hoursForDay += (classLec + classLab);
+                        }
+                    }
+                    
+                    // If they had a class, verify they timed in
+                    if (hasClass) {
+                        final LocalDate currentDate = date;
+                        boolean isPresent = attendances.stream().anyMatch(a -> a.getDate().equals(currentDate) && a.getTimeIn() != null);
+                        
+                        if (!isPresent) {
+                            totalAbsentHours += hoursForDay; // Add missed hours to penalty
+                        }
+                    }
+                }
+                // ====================================================================
+                
                 Payroll preview = payrollService.calculateTeachingPayrollPreview(emp, start, end, 0.0, 0.0, hourly, BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO);
                 
                 if (preview != null && preview.getTeachingPayRecord() != null) {
                     TeachingPay generatedPay = preview.getTeachingPayRecord();
+                    
+                    // Apply the mathematically calculated absent hours to the entity
+                    generatedPay.setAbsentDeductionHours(totalAbsentHours);
 
                     TeachingPay existingPay = teachingPayRepository
                             .findByEmployeeIdAndPeriodStartAndPeriodEnd(emp.getId(), start, end)
@@ -70,7 +114,10 @@ public class TeachingPayController {
                         generatedPay.setAdjustmentHours(existingPay.getAdjustmentHours());
                         generatedPay.setAdjustmentPay(existingPay.getAdjustmentPay());
                         generatedPay.setAdjustmentRemarks(existingPay.getAdjustmentRemarks());
+                        
                         generatedPay.setDeductionHours(existingPay.getDeductionHours());
+                        
+                        // We do NOT pull absentDeductionHours from existing, because we want it live-synced!
                         
                         generatedPay.setSgdHours(existingPay.getSgdHours());
                         generatedPay.setTutorialLecHours(existingPay.getTutorialLecHours());
@@ -450,14 +497,10 @@ public class TeachingPayController {
 
     @GetMapping("/api/teaching-pay/export-report")
     public ResponseEntity<org.springframework.core.io.Resource> exportTeachingPayroll() {
-        // 1. Fetch teaching pay data
         List<TeachingPay> teachingPays = teachingPayRepository.findAll();
-        
-        // 2. Actually call the ExcelHelper (Notice the // are removed)
         java.io.ByteArrayInputStream in = ExcelHelper.teachingPaysToExcel(teachingPays);
         org.springframework.core.io.InputStreamResource file = new org.springframework.core.io.InputStreamResource(in);
         
-        // 3. Return the actual file instead of null
         return ResponseEntity.ok()
             .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=Teaching_Payroll_Report.xlsx")
             .contentType(org.springframework.http.MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
@@ -465,16 +508,15 @@ public class TeachingPayController {
     }
 
     public static class TeachingSummaryDTO {
+        // [Existing DTO Logic Remains the Same]
         private Long employeeId;
         private String name;
         private String department;
         private String employmentStatus;
         private String dateStart;
         private String dateEnd;
-        
         private double lectureUnits;
         private double labUnits;
-        
         private double totalLecHours; 
         private double totalLabHours; 
         private double excessLecUnits;
@@ -499,12 +541,10 @@ public class TeachingPayController {
         public void setDateStart(String dateStart) { this.dateStart = dateStart; }
         public String getDateEnd() { return dateEnd; }
         public void setDateEnd(String dateEnd) { this.dateEnd = dateEnd; }
-        
         public double getLectureUnits() { return lectureUnits; }
         public void setLectureUnits(double lectureUnits) { this.lectureUnits = lectureUnits; }
         public double getLabUnits() { return labUnits; }
         public void setLabUnits(double labUnits) { this.labUnits = labUnits; }
-        
         public double getTotalLecHours() { return totalLecHours; }
         public void setTotalLecHours(double totalLecHours) { this.totalLecHours = totalLecHours; }
         public double getTotalLabHours() { return totalLabHours; }

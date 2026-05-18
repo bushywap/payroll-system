@@ -36,11 +36,14 @@
                 <li><a th:href="@{/teaching_load}" th:classappend="${activePage == 'teaching_load'} ? 'active' : ''">TEACHING LOAD</a></li>     
                 <li><a th:href="@{/compensation}" th:classappend="${activePage == 'compensation'} ? 'active' : ''">Employee Masterlist</a></li>
                 
-                <li class="nav-dropdown">
-                    <a href="#" th:classappend="${activePage == 'payroll' || activePage == 'teaching_payroll' || activePage == 'payroll_register' || activePage == 'gov_deductions'} ? 'active' : ''">PAYROLL <i class="fas fa-caret-down nav-dropdown-icon"></i></a>
+           <li class="nav-dropdown">
+                    <a href="#" th:classappend="${activePage == 'payroll' || activePage == 'teaching_payroll' || activePage == 'payroll_register' || activePage == 'gov_deductions' || activePage == 'loans'} ? 'active' : ''">PAYROLL <i class="fas fa-caret-down nav-dropdown-icon"></i></a>
                     <div class="nav-dropdown-content">
                         <a th:href="@{/payroll}"><i class="fas fa-calculator"></i> Payroll Management</a>
                         <a th:href="@{/teaching_payroll}"><i class="fas fa-chalkboard-teacher"></i> Teaching Payroll Process</a>
+                        
+                        <a th:href="@{/loans}"><i class="fas fa-hand-holding-usd"></i> Loan Management</a>
+                        
                         <a th:href="@{/payroll_register}"><i class="fas fa-file-invoice"></i> Payroll Register</a>
                         <a th:href="@{/gov_deductions}"><i class="fas fa-table"></i> Gov'n Deduction Table</a>
                     </div>

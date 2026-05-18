@@ -68,7 +68,9 @@ public class Payroll {
     private BigDecimal sssDeduction;
     private BigDecimal philhealthDeduction;
     private BigDecimal pagibigDeduction;
-    private BigDecimal loanDeductions; 
+    
+    // ✅ Safely initialized to ZERO to prevent math errors
+    private BigDecimal loanDeductions = BigDecimal.ZERO; 
 
     // --- NEW SPECIFIC LOANS ---
     private BigDecimal sssLoan = BigDecimal.ZERO;
