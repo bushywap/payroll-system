@@ -9,8 +9,8 @@ import java.util.List;
 
 @Repository
 public interface LoanRepository extends JpaRepository<Loan, Long> {
-    List<Loan> findByEmployeeId(Long employeeId);
-    
+    List<Loan> findByEmployee_Id(String employeeId);
+
     @Query("SELECT l FROM Loan l WHERE l.employee.id = :employeeId AND l.status = 'ACTIVE'")
-    List<Loan> findActiveLoansByEmployeeId(Long employeeId);
+    List<Loan> findActiveLoansByEmployeeId(String employeeId);
 }

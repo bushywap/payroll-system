@@ -66,10 +66,10 @@ public class TeachingPayService {
                         .collect(Collectors.toList());
                         
                 // FIX: Passes the String formatted ID properly to the Repository
-                List<TeachingLoad> loads = teachingLoadRepository.findByEmployeeEmployeeId(employee.getEmployeeId());
+                List<TeachingLoad> loads = teachingLoadRepository.findByEmployee_Id(employee.getId());
                 
                 // Fetch Attendance for this cutoff to verify time-ins
-                List<Attendance> attendances = attendanceRepository.findByEmployeeIdAndDateBetween(String.valueOf(employee.getId()), periodStart, periodEnd);
+                List<Attendance> attendances = attendanceRepository.findByEmployeeIdAndDateBetween(employee.getAttendanceKey(), periodStart, periodEnd);
 
                 // 1. Set up maps to track hours PER WEEK
                 Map<Integer, Double> weeklyLecHours = new HashMap<>();

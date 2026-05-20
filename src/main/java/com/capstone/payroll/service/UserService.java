@@ -71,7 +71,7 @@ public class UserService implements UserDetailsService {
         // FIX: Generate a unique alphanumeric Employee ID to satisfy the NOT NULL database constraint
         // You can change this to a specific format like "EAC-001" later in the Employee Masterlist
         String generatedBusinessId = "EMP-" + System.currentTimeMillis();
-        newEmployee.setEmployeeId(generatedBusinessId);
+        newEmployee.setId(generatedBusinessId);
 
         employeeRepository.save(newEmployee);
 

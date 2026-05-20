@@ -180,7 +180,7 @@ public class PayrollController {
             Employee emp = getEmployeeFromQuery(employeeQuery);
             if (emp == null) return ResponseEntity.badRequest().body("Employee not found");
             
-            List<TeachingLoad> loads = teachingLoadRepository.findByEmployeeId(emp.getId());
+            List<TeachingLoad> loads = teachingLoadRepository.findByEmployee_Id(emp.getId());
             boolean isFaculty = loads != null && !loads.isEmpty();
             
             Payroll result;
@@ -227,7 +227,7 @@ public class PayrollController {
             Employee emp = getEmployeeFromQuery(employeeQuery);
             if (emp == null) return ResponseEntity.badRequest().body("Employee not found");
             
-            List<TeachingLoad> loads = teachingLoadRepository.findByEmployeeId(emp.getId());
+            List<TeachingLoad> loads = teachingLoadRepository.findByEmployee_Id(emp.getId());
             boolean isFaculty = loads != null && !loads.isEmpty();
             
             Payroll preview;
@@ -254,7 +254,7 @@ public class PayrollController {
             
             preview.setStatus(status); 
             
-            Payroll existing = payrollRepository.findByEmployeeIdAndPayPeriodStartAndPayPeriodEnd(emp.getId(), start, end);
+            Payroll existing = payrollRepository.findByEmployee_IdAndPayPeriodStartAndPayPeriodEnd(emp.getId(), start, end);
             if (existing != null) {
                 preview.setId(existing.getId());
                 if (preview.getTeachingPayRecord() != null && existing.getTeachingPayRecord() != null) {
@@ -281,7 +281,7 @@ public class PayrollController {
             StringBuilder errors = new StringBuilder();
 
             List<TeachingLoad> allLoads = teachingLoadRepository.findAll();
-            java.util.Set<Long> facultyIds = new java.util.HashSet<>();
+            java.util.Set<String> facultyIds = new java.util.HashSet<>();
             for (TeachingLoad load : allLoads) {
                 if (load.getEmployee() != null) facultyIds.add(load.getEmployee().getId());
             }
@@ -330,7 +330,7 @@ public class PayrollController {
             StringBuilder errors = new StringBuilder();
 
             List<TeachingLoad> allLoads = teachingLoadRepository.findAll();
-            java.util.Set<Long> facultyIds = new java.util.HashSet<>();
+            java.util.Set<String> facultyIds = new java.util.HashSet<>();
             for (TeachingLoad load : allLoads) {
                 if (load.getEmployee() != null) facultyIds.add(load.getEmployee().getId());
             }
@@ -352,7 +352,7 @@ public class PayrollController {
                     if (preview != null && preview.getGrossIncome() != null) {
                         preview.setStatus(status); 
                         
-                        Payroll existing = payrollRepository.findByEmployeeIdAndPayPeriodStartAndPayPeriodEnd(emp.getId(), start, end);
+                        Payroll existing = payrollRepository.findByEmployee_IdAndPayPeriodStartAndPayPeriodEnd(emp.getId(), start, end);
                         if (existing != null) {
                             preview.setId(existing.getId());
                             if (preview.getTeachingPayRecord() != null && existing.getTeachingPayRecord() != null) {
@@ -388,7 +388,7 @@ public class PayrollController {
                 return ResponseEntity.status(400).body("Backend Error: No teaching loads exist in the database. Please assign faculty loads first.");
             }
 
-            java.util.Set<Long> employeeIds = new java.util.HashSet<>();
+            java.util.Set<String> employeeIds = new java.util.HashSet<>();
             for (TeachingLoad load : allLoads) {
                 if (load.getEmployee() != null) employeeIds.add(load.getEmployee().getId());
             }
@@ -396,7 +396,7 @@ public class PayrollController {
             List<java.util.Map<String, Object>> safeList = new ArrayList<>();
             StringBuilder errors = new StringBuilder();
 
-            for (Long empId : employeeIds) {
+            for (String empId : employeeIds) {
                 Employee emp = employeeRepository.findById(empId).orElse(null);
                 if (emp == null) continue;
                 
@@ -428,7 +428,7 @@ public class PayrollController {
         try {
             List<TeachingLoad> allLoads = teachingLoadRepository.findAll();
             
-            java.util.Set<Long> employeeIds = new java.util.HashSet<>();
+            java.util.Set<String> employeeIds = new java.util.HashSet<>();
             for (TeachingLoad load : allLoads) {
                 if (load.getEmployee() != null) employeeIds.add(load.getEmployee().getId());
             }
@@ -436,7 +436,7 @@ public class PayrollController {
             List<java.util.Map<String, Object>> savedList = new ArrayList<>();
             StringBuilder errors = new StringBuilder();
 
-            for (Long empId : employeeIds) {
+            for (String empId : employeeIds) {
                 Employee emp = employeeRepository.findById(empId).orElse(null);
                 if (emp == null) continue;
                 
@@ -448,7 +448,7 @@ public class PayrollController {
                     if (p != null && p.getGrossIncome() != null) {
                         p.setStatus("PUBLISHED");
                         
-                        Payroll existing = payrollRepository.findByEmployeeIdAndPayPeriodStartAndPayPeriodEnd(emp.getId(), start, end);
+                        Payroll existing = payrollRepository.findByEmployee_IdAndPayPeriodStartAndPayPeriodEnd(emp.getId(), start, end);
                         if (existing != null) {
                             p.setId(existing.getId());
                         }
@@ -508,7 +508,7 @@ public class PayrollController {
             Payroll preview = payrollService.calculateTeachingPayrollPreview(emp, start, end, lec, lab, rate, holiday, suspension, loan);
             preview.setStatus(status); 
             
-            Payroll existing = payrollRepository.findByEmployeeIdAndPayPeriodStartAndPayPeriodEnd(emp.getId(), start, end);
+            Payroll existing = payrollRepository.findByEmployee_IdAndPayPeriodStartAndPayPeriodEnd(emp.getId(), start, end);
             if (existing != null) {
                 preview.setId(existing.getId());
             }
@@ -673,7 +673,7 @@ public class PayrollController {
             Employee emp = getEmployeeFromQuery(employeeQuery);
             if (emp == null) return ResponseEntity.badRequest().body("Employee not found.");
 
-            Payroll payroll = payrollRepository.findByEmployeeIdAndPayPeriodStartAndPayPeriodEnd(emp.getId(), start, end);
+            Payroll payroll = payrollRepository.findByEmployee_IdAndPayPeriodStartAndPayPeriodEnd(emp.getId(), start, end);
             if (payroll == null) return ResponseEntity.badRequest().body("No saved payroll found for this period. Please generate and save it first.");
 
             emailService.sendPayslipEmail(emp, payroll);
@@ -699,7 +699,7 @@ public class PayrollController {
                     continue;
                 }
                 
-                Payroll payroll = payrollRepository.findByEmployeeIdAndPayPeriodStartAndPayPeriodEnd(emp.getId(), start, end);
+                Payroll payroll = payrollRepository.findByEmployee_IdAndPayPeriodStartAndPayPeriodEnd(emp.getId(), start, end);
                 if (payroll != null) {
                     try {
                         emailService.sendPayslipEmail(emp, payroll);
@@ -776,11 +776,10 @@ public class PayrollController {
 
             for (String empIdStr : employeeIds) {
                 try {
-                    Long empId = Long.parseLong(empIdStr);
-                    Employee emp = employeeRepository.findById(empId).orElse(null);
+                    Employee emp = employeeRepository.findById(empIdStr.trim()).orElse(null);
                     
                     if (emp != null) {
-                        Payroll payroll = payrollRepository.findByEmployeeIdAndPayPeriodStartAndPayPeriodEnd(emp.getId(), start, end);
+                        Payroll payroll = payrollRepository.findByEmployee_IdAndPayPeriodStartAndPayPeriodEnd(emp.getId(), start, end);
                         if (payroll != null) {
                             emailService.sendPayslipEmail(emp, payroll);
                             sentCount++;

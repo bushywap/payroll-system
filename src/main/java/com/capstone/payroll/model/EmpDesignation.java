@@ -1,5 +1,6 @@
 package com.capstone.payroll.model;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -10,19 +11,20 @@ import jakarta.persistence.Table;
 @Table(name = "designation")
 public class EmpDesignation {
 	
-		@Id
+	    @Id
 	    @GeneratedValue(strategy = GenerationType.IDENTITY)
-	    private int Id;
+	    @Column(name = "id")
+	    private int id;
 	    
 	    private String designation;
 	    private int teaching;
 	    private int employee;
 	    
 	    public int getId() {
-			return Id;
+			return id;
 		}
 		public void setId(int id) {
-			Id = id;
+			this.id = id;
 		}
 		
 		public String getDesignation() {

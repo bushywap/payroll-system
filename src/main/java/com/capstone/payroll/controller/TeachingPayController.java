@@ -58,8 +58,8 @@ public class TeachingPayController {
                 // NEW: AUTOMATIC ABSENCE DETECTION LOGIC
                 // ====================================================================
                 double totalAbsentHours = 0.0;
-                List<TeachingLoad> loads = teachingLoadRepository.findByEmployeeId(emp.getId());
-                List<Attendance> attendances = attendanceRepository.findByEmployeeIdAndDateBetween(String.valueOf(emp.getId()), start, end);
+                List<TeachingLoad> loads = teachingLoadRepository.findByEmployee_Id(emp.getId());
+                List<Attendance> attendances = attendanceRepository.findByEmployeeIdAndDateBetween(emp.getAttendanceKey(), start, end);
                 
                 for (LocalDate date = start; !date.isAfter(end); date = date.plusDays(1)) {
                     String dayName = date.getDayOfWeek().name().substring(0, 3).toUpperCase();
@@ -102,7 +102,7 @@ public class TeachingPayController {
                     generatedPay.setAbsentDeductionHours(totalAbsentHours);
 
                     TeachingPay existingPay = teachingPayRepository
-                            .findByEmployeeIdAndPeriodStartAndPeriodEnd(emp.getId(), start, end)
+                            .findByEmployee_IdAndPeriodStartAndPeriodEnd(emp.getId(), start, end)
                             .orElse(null);
 
                     if (existingPay != null) {
@@ -191,12 +191,12 @@ public class TeachingPayController {
         model.addAttribute("departments", departments);
 
         List<TeachingLoad> allLoads = teachingLoadRepository.findAll();
-        Map<Long, TeachingSummaryDTO> summaryMap = new HashMap<>();
+        Map<String, TeachingSummaryDTO> summaryMap = new HashMap<>();
 
         for (TeachingLoad load : allLoads) {
             if (load.getEmployee() == null) continue;
             
-            Long ownerId = load.getEmployee().getId();
+            String ownerId = load.getEmployee().getId();
             TeachingSummaryDTO ownerDto = getOrCreateDto(summaryMap, load.getEmployee());
 
             int sections = load.getNoOfSections() > 0 ? load.getNoOfSections() : 1;
@@ -265,7 +265,7 @@ public class TeachingPayController {
         return "teaching_load"; 
     }
 
-    private TeachingSummaryDTO getOrCreateDto(Map<Long, TeachingSummaryDTO> map, Employee emp) {
+    private TeachingSummaryDTO getOrCreateDto(Map<String, TeachingSummaryDTO> map, Employee emp) {
         TeachingSummaryDTO dto = map.getOrDefault(emp.getId(), new TeachingSummaryDTO());
         if (dto.getEmployeeId() == null) {
             dto.setEmployeeId(emp.getId());
@@ -284,7 +284,7 @@ public class TeachingPayController {
         List<Employee> emps = employeeRepository.searchByIdOrName(query);
         if (emps.isEmpty()) return ResponseEntity.notFound().build();
         Employee emp = emps.get(0);
-        List<TeachingLoad> loads = teachingLoadRepository.findByEmployeeId(emp.getId());
+        List<TeachingLoad> loads = teachingLoadRepository.findByEmployee_Id(emp.getId());
         
         double totalLec = 0.0; 
         double totalLab = 0.0;
@@ -319,10 +319,10 @@ public class TeachingPayController {
 
     @GetMapping("/teaching-pay/api/payslip/{empId}")
     @ResponseBody
-    public ResponseEntity<Map<String, Object>> getTeachingPayslip(@PathVariable Long empId) {
+    public ResponseEntity<Map<String, Object>> getTeachingPayslip(@PathVariable String empId) {
         syncAllTeachingPays(); 
         
-        List<TeachingPay> records = teachingPayRepository.findByEmployeeIdOrderByPeriodEndDesc(empId);
+        List<TeachingPay> records = teachingPayRepository.findByEmployee_IdOrderByPeriodEndDesc(empId);
         if (records.isEmpty()) return ResponseEntity.notFound().build();
         
         TeachingPay tp = records.get(0);
@@ -435,16 +435,11 @@ public class TeachingPayController {
             Map<String, Object> empData = new HashMap<>();
             if (emp != null) {
                 empData.put("id", emp.getId());
-                empData.put("employeeId", emp.getId()); 
-                try {
-                    Object customId = emp.getClass().getMethod("getEmployeeId").invoke(emp);
-                    if (customId != null) empData.put("employeeId", customId);
-                } catch(Exception e) { }
-                
+                empData.put("employeeId", emp.getId());
                 empData.put("firstName", emp.getFirstName());
                 empData.put("lastName", emp.getLastName());
             } else {
-                empData.put("id", 0);
+                empData.put("id", "");
                 empData.put("employeeId", "N/A");
                 empData.put("firstName", "Unknown");
                 empData.put("lastName", "Faculty");
@@ -509,7 +504,7 @@ public class TeachingPayController {
 
     public static class TeachingSummaryDTO {
         // [Existing DTO Logic Remains the Same]
-        private Long employeeId;
+        private String employeeId;
         private String name;
         private String department;
         private String employmentStatus;
@@ -529,8 +524,8 @@ public class TeachingPayController {
         private double substituteHours;
         private double absentDeductionHours; 
 
-        public Long getEmployeeId() { return employeeId; }
-        public void setEmployeeId(Long employeeId) { this.employeeId = employeeId; }
+        public String getEmployeeId() { return employeeId; }
+        public void setEmployeeId(String employeeId) { this.employeeId = employeeId; }
         public String getName() { return name; }
         public void setName(String name) { this.name = name; }
         public String getDepartment() { return department; }

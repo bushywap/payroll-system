@@ -10,11 +10,10 @@ import java.util.Optional;
 @Repository
 public interface SubstituteRecordRepository extends JpaRepository<SubstituteRecord, Long> {
     
-    // Custom query to find all substitute records for a specific absent faculty
-    List<SubstituteRecord> findByOriginalFacultyId(Long originalFacultyId);
+    // EAC employee PK is varchar employee_id (Employee.id)
+    List<SubstituteRecord> findByOriginalFaculty_Id(String originalFacultyId);
 
-    // Custom query to find all classes a specific faculty substituted for (to pay them)
-    List<SubstituteRecord> findBySubstituteFacultyId(Long substituteFacultyId);
+    List<SubstituteRecord> findBySubstituteFaculty_Id(String substituteFacultyId);
     
     Optional<SubstituteRecord> findByTeachingLoadId(Long loadId);
 }

@@ -15,12 +15,11 @@ import java.util.List;
 @Repository
 public interface PayrollRepository extends JpaRepository<Payroll, Long> {
     
-    List<Payroll> findByEmployeeEmployeeId(String employeeId);
     List<Payroll> findByPayPeriodStartAndPayPeriodEndAndStatus(LocalDate start, LocalDate end, String status);
-    Payroll findByEmployeeIdAndPayPeriodStartAndPayPeriodEnd(Long employeeId, LocalDate start, LocalDate end);
+    Payroll findByEmployee_IdAndPayPeriodStartAndPayPeriodEnd(String employeeId, LocalDate start, LocalDate end);
 
     // ✅ ADDED THIS LINE FOR THE 13TH MONTH PAY!
-    List<Payroll> findByEmployeeIdAndPayPeriodStartBetween(Long employeeId, LocalDate start, LocalDate end);
+    List<Payroll> findByEmployee_IdAndPayPeriodStartBetween(String employeeId, LocalDate start, LocalDate end);
 
     // --- STORED PROCEDURE CALLS ---
     @Modifying(clearAutomatically = true, flushAutomatically = true)

@@ -62,8 +62,14 @@
     <div class="main-content">
         <div class="comp-header">
             <h2 class="comp-title">Compensation Masterlist</h2>
-            <input type="text" id="searchInput" class="search-box" placeholder="Search employee by Name or ID..." onkeyup="filterEmployees()">
+            <input type="text" id="searchInput" class="search-box" placeholder="Search EAC id (e.g. 1-00001) or name..." onkeyup="filterEmployees()">
         </div>
+        <p style="margin: 8px 0 0; font-size: 13px; color: #555;">
+            <strong th:text="${employeeCount}">0</strong> employees from shared HR database
+            (<span th:text="${eacDemoCount}">0</span> EAC demo ids <code>1-00001</code>…).
+            Use tab <strong>All Employees</strong> or search <code>1-00001</code>.
+            <span style="color:#b71c1c;">Non-Faculty</span> tab = staff designation only (not “non-school dept”).
+        </p>
         
         <div class="attendance-toggle-container">
             <button type="button" class="btn-tab active-tab" id="btnTabAll" onclick="switchCompTab('ALL')">
@@ -76,6 +82,7 @@
                 <i class="fas fa-user-tie"></i> Non-Faculty
             </button>
         </div>
+        <p id="filterHint" style="display:none; margin: 10px 0; padding: 10px 14px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; font-size: 13px; color: #664d03;"></p>
 
 <div class="comp-table-container">
     <table class="comp-table" id="empTable">
@@ -90,11 +97,17 @@
             </tr>
         </thead>
         <tbody>
+            <tr th:if="${#lists.isEmpty(employees)}">
+                <td colspan="7" style="text-align:center; padding: 40px; color: #666;">
+                    No employees in <code>eac_hr_db</code>. Run HR <code>seed_demo_school_employees.sql</code>, then refresh.
+                </td>
+            </tr>
             <tr th:each="emp : ${employees}" class="emp-row" 
-                th:attr="data-emp-type=${(emp.department != null and #strings.containsIgnoreCase(emp.department.departmentName, 'School')) ? 'FACULTY' : 'NON-FACULTY'}">
+                th:attr="data-emp-type=${(emp.designation != null and emp.designation.teaching == 1) or (#strings.containsIgnoreCase(emp.employeeStatus ?: '', 'Faculty') and !#strings.containsIgnoreCase(emp.employeeStatus ?: '', 'Non-Faculty')) ? 'FACULTY' : 'NON-FACULTY'},
+                         data-eac=${emp.id != null and emp.id.startsWith('1-')}">
                 
                 <td th:text="${emp.id}">1</td>
-                <td style="font-weight: 800; color: #b71c1c;" th:text="${emp.employeeId}">1-00000</td> <td>
+                <td style="font-weight: 800; color: #b71c1c;" th:text="${emp.id}">1-00000</td> <td>
                     <div style="font-weight: 800; color: #111; font-size: 15px;" th:text="${emp.firstName + ' ' + emp.lastName}">John Doe</div>
                     <div style="margin-top: 5px;">
                         <span style="font-size: 11px; color: #666; font-weight: 600;">Employee_Status: </span>
@@ -129,7 +142,7 @@
                 
                 <td style="text-align: center;">
                     <button class="btn-edit" 
-                            th:attr="data-id=${emp.id}, data-empid=${emp.employeeId}, data-name=${emp.firstName + ' ' + emp.lastName}, 
+                            th:attr="data-id=${emp.id}, data-empid=${emp.id}, data-name=${emp.firstName + ' ' + emp.lastName}, 
                                      data-basic=${emp.basicSalary}, data-hourly=${emp.hourlyRate}, 
                                      data-admin=${emp.adminPay}, data-allowance=${emp.allowance}, 
                                      data-hon=${emp.honorarium}, data-relocation=${emp.relocationPay},
@@ -197,19 +210,47 @@
             }
         
             function filterEmployees() {
-                const query = document.getElementById('searchInput').value.toLowerCase();
+                const query = document.getElementById('searchInput').value.toLowerCase().trim();
                 const rows = document.querySelectorAll('.emp-row');
-                
+                const hint = document.getElementById('filterHint');
+                let visible = 0;
+                let hiddenByTab = 0;
+                let hiddenBySearch = 0;
+
                 rows.forEach(row => {
                     const text = row.innerText.toLowerCase();
                     const empType = row.getAttribute('data-emp-type');
-                    
-                    const matchesSearch = text.includes(query);
+                    const matchesSearch = !query || text.includes(query);
                     const matchesTab = currentTab === 'ALL' || currentTab === empType;
-
-                    row.style.display = (matchesSearch && matchesTab) ? '' : 'none';
+                    const show = matchesSearch && matchesTab;
+                    row.style.display = show ? '' : 'none';
+                    if (show) visible++;
+                    else if (matchesSearch && !matchesTab) hiddenByTab++;
+                    else if (!matchesSearch && matchesTab) hiddenBySearch++;
                 });
+
+                if (rows.length === 0) {
+                    hint.style.display = 'none';
+                    return;
+                }
+                if (visible === 0) {
+                    hint.style.display = 'block';
+                    if (hiddenByTab > 0 && query.startsWith('1-')) {
+                        hint.innerHTML = '<strong>1-00001 is HR staff (Non-Faculty).</strong> You are on the <strong>Faculty</strong> tab — switch to <a href="#" onclick="switchCompTab(\'NON-FACULTY\'); return false;">Non-Faculty</a> or <a href="#" onclick="switchCompTab(\'ALL\'); return false;">All Employees</a>.';
+                    } else if (hiddenByTab > 0) {
+                        hint.textContent = 'Rows match your search but not this tab. Try All Employees or the other tab.';
+                    } else {
+                        hint.textContent = 'No match for this search. Clear the box or try another EAC id (e.g. 1-00002).';
+                    }
+                } else {
+                    hint.style.display = 'none';
+                }
             }
+
+            document.addEventListener('DOMContentLoaded', () => {
+                switchCompTab('ALL');
+                filterEmployees();
+            });
 
             function openEditModal(btn) {
                 document.getElementById('editEmpId').value = btn.getAttribute('data-id');

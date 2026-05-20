@@ -190,10 +190,20 @@ public class ExcelHelper {
                     break; 
                 }
 
-                TeachingLoad load = new TeachingLoad(); 
-                
+                TeachingLoad load = new TeachingLoad();
+
+                String empId = getStringValue(currentRow.getCell(0));
+                if (empId == null || empId.isBlank()) {
+                    long legacyNum = (long) getNumericValue(currentRow.getCell(0));
+                    empId = String.format("1-%05d", legacyNum);
+                } else {
+                    empId = empId.trim();
+                    if (empId.matches("\\d{1,3}")) {
+                        empId = String.format("1-%05d", Long.parseLong(empId));
+                    }
+                }
                 Employee employee = new Employee();
-                employee.setId((long) getNumericValue(currentRow.getCell(0)));
+                employee.setId(empId);
                 load.setEmployee(employee);
 
                 load.setSubject(getStringValue(currentRow.getCell(1)));

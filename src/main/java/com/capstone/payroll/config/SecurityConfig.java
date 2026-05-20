@@ -58,6 +58,7 @@ public class SecurityConfig {
             .requestMatchers(publicPaths).permitAll() 
             
             .requestMatchers("/dashboard", "/attendance/**", "/payroll/**", "/api/payroll/**",
+                             "/compensation", "/employees", "/api/employees/**",
                              "/payslips", "/payroll-history", "/leave/**", "/overtime", 
                              "/profile", "/notifications")
             .hasAnyAuthority("ROLE_ADMIN", "ADMIN", "Admin", "employee", "EMPLOYEE")

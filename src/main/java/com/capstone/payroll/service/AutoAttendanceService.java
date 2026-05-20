@@ -32,11 +32,11 @@ public class AutoAttendanceService {
         
         for (Employee employee : activeEmployees) {
             Optional<Attendance> existingAttendance = attendanceService
-                .getAttendanceByEmployeeIdAndDate(String.valueOf(employee.getEmployeeId()), today);
+                .getAttendanceByEmployeeIdAndDate(employee.getAttendanceKey(), today);
             
             if (existingAttendance.isEmpty()) {
                 attendanceService.createAttendance(
-                    String.valueOf(employee.getEmployeeId()), 
+                    employee.getAttendanceKey(), 
                     today, 
                     DEFAULT_TIME_IN, 
                     DEFAULT_TIME_OUT
@@ -52,7 +52,7 @@ public class AutoAttendanceService {
         
         for (Employee employee : activeEmployees) {
             Optional<Attendance> attendance = attendanceService
-                .getAttendanceByEmployeeIdAndDate(String.valueOf(employee.getEmployeeId()), today);
+                .getAttendanceByEmployeeIdAndDate(employee.getAttendanceKey(), today);
             
             if (attendance.isPresent()) {
                 Attendance record = attendance.get();
@@ -72,14 +72,14 @@ public class AutoAttendanceService {
         }
     }
 
-    public Attendance recordAutoTimeIn(Long employeeId) {
+    public Attendance recordAutoTimeIn(String employeeId) {
         LocalTime currentTime = LocalTime.now();
-        return attendanceService.recordTimeIn(String.valueOf(employeeId), currentTime);
+        return attendanceService.recordTimeIn(employeeId, currentTime);
     }
 
-    public Attendance recordAutoTimeOut(Long employeeId) {
+    public Attendance recordAutoTimeOut(String employeeId) {
         LocalTime currentTime = LocalTime.now();
-        return attendanceService.recordTimeOut(String.valueOf(employeeId), currentTime);
+        return attendanceService.recordTimeOut(employeeId, currentTime);
     }
 
     public boolean isWithinGracePeriod(LocalTime timeIn) {
@@ -90,7 +90,7 @@ public class AutoAttendanceService {
         return attendance.getTotalHours() != null ? (attendance.getTotalHours() / 60.0) : 0.0;
     }
 
-    public AttendanceStats getAttendanceStats(Long empId, LocalDate startDate, LocalDate endDate) {
+    public AttendanceStats getAttendanceStats(String empId, LocalDate startDate, LocalDate endDate) {
         List<Attendance> attendances = attendanceService
             .getAttendanceByEmpIdAndDateRange(String.valueOf(empId), startDate, endDate);
         

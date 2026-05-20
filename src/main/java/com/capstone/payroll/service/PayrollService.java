@@ -242,7 +242,7 @@ public class PayrollService {
 
     private TeachingPay processTeachingLogic(Employee emp, LocalDate start, LocalDate end, BigDecimal hourlyRate, BigDecimal manualHoliday, BigDecimal manualSuspension, List<Attendance> attendanceRecords) {
         List<TeachingLoad> loads = null;
-        try { loads = facultyLoadRepository.findByEmployeeEmployeeId(emp.getEmployeeId()); } catch(Exception e) {}
+        try { loads = facultyLoadRepository.findByEmployee_Id(emp.getId()); } catch(Exception e) {}
         
         if (loads == null || loads.isEmpty()) return null;
 
@@ -528,10 +528,10 @@ public class PayrollService {
             BigDecimal sssLoanInput, BigDecimal hdmfLoanInput, 
             BigDecimal adjustmentInput, BigDecimal honorariumInput, BigDecimal longevityInput) {
 
-        List<Attendance> records = attendanceService.getAttendanceByEmpIdAndDateRange(emp.getEmployeeId(), start, end);
+        List<Attendance> records = attendanceService.getAttendanceByEmpIdAndDateRange(emp.getAttendanceKey(), start, end);
         boolean hasAnyLogs = records != null && !records.isEmpty();
         
-        List<Leave> employeeLeaves = leaveRepository.findByEmployeeId(emp.getId()).stream()
+        List<Leave> employeeLeaves = leaveRepository.findByEmployee_Id(emp.getId()).stream()
                 .filter(l -> "APPROVED".equalsIgnoreCase(l.getStatus()) && l.getStartDate() != null && l.getEndDate() != null &&
                              !l.getEndDate().isBefore(start) && !l.getStartDate().isAfter(end)).toList();
                              
@@ -555,7 +555,7 @@ public class PayrollService {
         int leaveWithoutPayDays = 0, leaveWithPayDays = 0; 
 
         List<TeachingLoad> loads = null;
-        try { loads = facultyLoadRepository.findByEmployeeEmployeeId(emp.getEmployeeId()); } catch(Exception e) {}
+        try { loads = facultyLoadRepository.findByEmployee_Id(emp.getId()); } catch(Exception e) {}
         List<String> scheduledDays = new java.util.ArrayList<>();
         if (loads != null) {
             for (TeachingLoad load : loads) if (load.getDayOfWeek() != null) scheduledDays.add(load.getDayOfWeek().toUpperCase());
@@ -696,7 +696,7 @@ public class PayrollService {
         }
 
         BigDecimal safeLoans = loans != null ? loans : BigDecimal.ZERO;
-        List<Attendance> records = attendanceService.getAttendanceByEmpIdAndDateRange(emp.getEmployeeId(), start, end);
+        List<Attendance> records = attendanceService.getAttendanceByEmpIdAndDateRange(emp.getAttendanceKey(), start, end);
         
         TeachingPay tp = processTeachingLogic(emp, start, end, actualRate, holidayOverride, suspensionOverride, records);
         
@@ -745,7 +745,7 @@ public class PayrollService {
         
         int totalLateMinutes = 0, totalUndertimeMinutes = 0, totalAbsences = 0;
         List<TeachingLoad> loads = null;
-        try { loads = facultyLoadRepository.findByEmployeeEmployeeId(emp.getEmployeeId()); } catch(Exception e) {}
+        try { loads = facultyLoadRepository.findByEmployee_Id(emp.getId()); } catch(Exception e) {}
         List<String> scheduledDays = new java.util.ArrayList<>();
         if (loads != null) {
             for (TeachingLoad load : loads) if (load.getDayOfWeek() != null) scheduledDays.add(load.getDayOfWeek().toUpperCase());
@@ -910,7 +910,7 @@ public class PayrollService {
         LocalDate startOfYear = LocalDate.of(year, 1, 1);
         LocalDate endOfYear = LocalDate.of(year, 12, 31);
 
-        List<Payroll> yearlyPayrolls = payrollRepository.findByEmployeeIdAndPayPeriodStartBetween(
+        List<Payroll> yearlyPayrolls = payrollRepository.findByEmployee_IdAndPayPeriodStartBetween(
                 emp.getId(), startOfYear, endOfYear);
 
         BigDecimal totalBasicEarned = BigDecimal.ZERO;

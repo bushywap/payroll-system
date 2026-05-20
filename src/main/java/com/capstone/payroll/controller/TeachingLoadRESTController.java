@@ -54,7 +54,7 @@ public class TeachingLoadRESTController {
     @GetMapping("/schedule/{empId}")
     @ResponseBody
     public ResponseEntity<List<TeachingLoad>> getEmployeeSchedule(@PathVariable String empId) { 
-        List<TeachingLoad> schedule = teachingLoadRepository.findByEmployeeEmployeeId(empId);
+        List<TeachingLoad> schedule = teachingLoadRepository.findByEmployee_Id(empId);
         if (schedule.isEmpty()) { return ResponseEntity.notFound().build(); }
         return ResponseEntity.ok(schedule);
     }

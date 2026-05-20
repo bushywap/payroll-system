@@ -12,14 +12,10 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @Table(name = "employee")
 public class Employee {
 
+    /** PK — official EAC employee id (e.g. 1-00001), same as HR {@code employee.employee_id}. */
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    private Long id;
-
-    // The physical school ID string (e.g., "1-00000")
-    @Column(name = "employee_id", length = 50, unique = true, nullable = false)
-    private String employeeId;
+    @Column(name = "employee_id", length = 20)
+    private String id;
 
     @Column(name = "first_name", length = 50, nullable = false)
     private String firstName;
@@ -30,7 +26,8 @@ public class Employee {
     @Column(length = 100, unique = true)
     private String email;
 
-    @Column(name = "account_status", length = 50)
+    /** EAC HR uses {@code status} (Active, etc.). */
+    @Column(name = "status", length = 50)
     private String accountStatus = "Active"; 
 
     @Column(name = "employee_status", length = 50)
@@ -89,11 +86,16 @@ public class Employee {
     public Employee() {}
 
     // --- GETTERS AND SETTERS ---
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    
-    public String getEmployeeId() { return employeeId; }
-    public void setEmployeeId(String employeeId) { this.employeeId = employeeId; }
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
+
+    /** Alias for UI/JSON that expect {@code employeeId} (same as {@link #id}). */
+    public String getEmployeeId() { return id; }
+
+    /** Value stored in {@code attendance.employee_id} (same as PK). */
+    public String getAttendanceKey() {
+        return id == null ? null : id.trim();
+    }
     
     public String getFirstName() { return firstName; }
     public void setFirstName(String firstName) { this.firstName = firstName; }

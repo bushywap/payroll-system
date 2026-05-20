@@ -13,7 +13,7 @@ import com.capstone.payroll.model.Attendance;
 @Repository
 public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
     
-    @Query("SELECT a FROM Attendance a JOIN Employee e ON a.employeeId = e.employeeId WHERE e.department.departmentCode = :deptCode")
+    @Query("SELECT a FROM Attendance a JOIN Employee e ON a.employeeId = e.id WHERE e.department.departmentCode = :deptCode")
     List<Attendance> findByEmployeeDepartmentCode(@Param("deptCode") String deptCode);
     
     List<Attendance> findByEmployeeId(String employeeId);
@@ -21,10 +21,10 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
     List<Attendance> findByEmployeeIdAndDateBetween(String employeeId, LocalDate startDate, LocalDate endDate);
     List<Attendance> findByEmployeeIdAndDateBetweenOrderByDateAsc(String employeeId, LocalDate startDate, LocalDate endDate);
 
-    @Query("SELECT a FROM Attendance a JOIN Employee e ON a.employeeId = e.employeeId WHERE a.employeeId = :empId AND e.designation.teaching = 1")
+    @Query("SELECT a FROM Attendance a JOIN Employee e ON a.employeeId = e.id WHERE a.employeeId = :empId AND e.designation.teaching = 1")
     List<Attendance> findTeachingTypeByEmployeeId(@Param("empId") String employeeId);
 
-    @Query("SELECT a FROM Attendance a JOIN Employee e ON a.employeeId = e.employeeId WHERE a.employeeId = :empId AND e.designation.employee = 1")
+    @Query("SELECT a FROM Attendance a JOIN Employee e ON a.employeeId = e.id WHERE a.employeeId = :empId AND e.designation.employee = 1")
     List<Attendance> findEmployeeTypeByEmployeeId(@Param("empId") String employeeId);
 
     // --- STORED PROCEDURE CALLS ---

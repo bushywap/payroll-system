@@ -36,7 +36,7 @@ public class LeaveService {
 
     public Optional<Leave> findLeaveById(Long id) { return leaveRepository.findById(id); }
 
-    public List<Leave> findLeavesByEmployeeId(Long employeeId) { return leaveRepository.findByEmployeeId(employeeId); }
+    public List<Leave> findLeavesByEmployeeId(String employeeId) { return leaveRepository.findByEmployee_Id(employeeId); }
 
     public List<Leave> findLeavesByStatus(String status) { return leaveRepository.findByStatus(status); }
 
@@ -87,7 +87,7 @@ public class LeaveService {
         return leaveRepository.findByStartDateBetween(startDate, endDate);
     }
 
-    public List<Leave> findEmployeeLeavesByDateRange(Long employeeId, LocalDate startDate, LocalDate endDate) { 
-        return leaveRepository.findByEmployeeIdAndStartDateBetween(employeeId, startDate, endDate);
+    public List<Leave> findEmployeeLeavesByDateRange(String employeeId, LocalDate startDate, LocalDate endDate) { 
+        return leaveRepository.findByEmployee_IdAndStartDateBetween(employeeId, startDate, endDate);
     }
 }

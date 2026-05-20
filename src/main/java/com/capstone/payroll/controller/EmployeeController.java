@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.math.BigDecimal;
+import java.util.Comparator;
 import java.util.List;
 
 @Controller
@@ -40,9 +41,16 @@ public class EmployeeController {
     public String showEmployees() { return "employee"; }
     
     @GetMapping("/compensation")
-    public String showCompensation(Model model) { 
-        model.addAttribute("employees", employeeRepository.findAll());
-        return "compensation"; 
+    public String showCompensation(Model model) {
+        List<Employee> employees = employeeRepository.findAll();
+        employees.sort(Comparator.comparing(Employee::getId, Comparator.nullsLast(String::compareTo)));
+        long eacDemoCount = employees.stream()
+                .filter(e -> e.getId() != null && e.getId().startsWith("1-"))
+                .count();
+        model.addAttribute("employees", employees);
+        model.addAttribute("employeeCount", employees.size());
+        model.addAttribute("eacDemoCount", eacDemoCount);
+        return "compensation";
     }
     
     @GetMapping("/payslips")
@@ -80,7 +88,7 @@ public class EmployeeController {
     @PostMapping("/api/employees/update-compensation")
     @ResponseBody
     public ResponseEntity<?> updateCompensation(
-            @RequestParam Long id,
+            @RequestParam String id,
             @RequestParam(required = false) BigDecimal basicSalary,
             @RequestParam(required = false) BigDecimal hourlyRate,
             @RequestParam(required = false) BigDecimal adminPay,

@@ -46,7 +46,7 @@ public class LeaveController {
 
     @GetMapping("/api/leave/employee/{employeeId}")
     @ResponseBody
-    public List<Leave> getLeavesByEmployeeId(@PathVariable Long employeeId) { // Changed to Leave
+    public List<Leave> getLeavesByEmployeeId(@PathVariable String employeeId) {
         return leaveService.findLeavesByEmployeeId(employeeId);
     }
 
@@ -67,7 +67,7 @@ public class LeaveController {
     public Map<String, Object> createLeave(@RequestBody Map<String, Object> leaveData) {
         try {
             Leave leave = new Leave(); // Changed to Leave
-            leave.setEmployeeDbId(Long.parseLong(leaveData.get("employeeId").toString()));
+            leave.setEmployeeDbId(leaveData.get("employeeId").toString().trim());
             leave.setLeaveType(leaveData.get("leaveType").toString());
             leave.setStartDate(LocalDate.parse(leaveData.get("startDate").toString()));
             leave.setEndDate(LocalDate.parse(leaveData.get("endDate").toString()));

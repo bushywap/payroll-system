@@ -22,12 +22,9 @@ public interface TeachingPayRepository extends JpaRepository<TeachingPay, Long> 
     List<TeachingPay> findByPeriodStartAndPeriodEnd(LocalDate periodStart, LocalDate periodEnd);
 
     // Resolves the "undefined" error when fetching the latest teaching pay
-    List<TeachingPay> findByEmployeeIdOrderByPeriodEndDesc(Long employeeId);
-    
-    // =========================================================================
-    // NEW: REQUIRED TO PRESERVE MAKE-UP CLASSES DURING PAGE RELOADS
-    // =========================================================================
-    Optional<TeachingPay> findByEmployeeIdAndPeriodStartAndPeriodEnd(Long employeeId, LocalDate periodStart, LocalDate periodEnd);
+    List<TeachingPay> findByEmployee_IdOrderByPeriodEndDesc(String employeeId);
+
+    Optional<TeachingPay> findByEmployee_IdAndPeriodStartAndPeriodEnd(String employeeId, LocalDate periodStart, LocalDate periodEnd);
 
     // =========================================================================
     // UPDATED STORED PROCEDURE CALL
@@ -37,7 +34,7 @@ public interface TeachingPayRepository extends JpaRepository<TeachingPay, Long> 
     @Transactional
     @Query(value = "CALL SP_GenerateManualTeachingPayroll(:empId, :startDate, :endDate, :lecHours, :labHours, :rate, :holiday, :suspensionDed, :loans, :suspensionDates)", nativeQuery = true)
     void callGenerateManualTeachingPayroll(
-        @Param("empId") Long empId,
+        @Param("empId") String empId,
         @Param("startDate") LocalDate startDate,
         @Param("endDate") LocalDate endDate,
         @Param("lecHours") Double lecHours,

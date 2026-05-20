@@ -9,9 +9,6 @@ import java.util.List;
 @Repository
 public interface TeachingLoadRepository extends JpaRepository<TeachingLoad, Long> {
     
-    // Original method (searches by Database ID: 1, 2, 3)
-    List<TeachingLoad> findByEmployeeId(Long employeeId);
-    
-    // NEW METHOD: Searches by the String School ID (1-00056)
-    List<TeachingLoad> findByEmployeeEmployeeId(String employeeId);
+    /** By EAC employee id ({@code employee.employee_id}, e.g. 1-00001). */
+    List<TeachingLoad> findByEmployee_Id(String employeeId);
 }

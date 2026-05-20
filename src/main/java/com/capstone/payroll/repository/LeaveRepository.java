@@ -13,18 +13,18 @@
 	@Repository
 	public interface LeaveRepository extends JpaRepository<Leave, Long> { 
 	    
-	    List<Leave> findByEmployeeId(Long employeeId); 
-	    List<Leave> findByEmployeeIdAndStatus(Long employeeId, String status); 
+	    List<Leave> findByEmployee_Id(String employeeId);
+	    List<Leave> findByEmployee_IdAndStatus(String employeeId, String status);
 	    List<Leave> findByStatus(String status); 
 	    List<Leave> findByLeaveType(String leaveType); 
 	    List<Leave> findByStartDateBetween(LocalDate startDate, LocalDate endDate); 
-	    List<Leave> findByEmployeeIdAndStartDateBetween(Long employeeId, LocalDate startDate, LocalDate endDate); 
+	    List<Leave> findByEmployee_IdAndStartDateBetween(String employeeId, LocalDate startDate, LocalDate endDate); 
 	
 	    @Modifying
 	    @Transactional
 	    @Query(value = "CALL SP_ApproveLeaveTransaction(:leaveId, :empId, :leaveType, :days)", nativeQuery = true)
 	    void approveLeaveProc(
-	        @Param("leaveId") Long leaveId, @Param("empId") Long empId,
+	        @Param("leaveId") Long leaveId, @Param("empId") String empId,
 	        @Param("leaveType") String leaveType, @Param("days") int days
 	    );
 	}

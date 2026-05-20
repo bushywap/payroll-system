@@ -12,8 +12,8 @@ public class LeaveBalance {
     @Column(name = "leave_id")
     private Long leaveId;
 
-    @Column(name = "employee_id", nullable = false)
-    private Long employeeId;
+    @Column(name = "employee_id", length = 20, nullable = false)
+    private String employeeId;
 
     // Matches the List structure in Employee
     @ManyToOne(fetch = FetchType.LAZY)
@@ -52,7 +52,7 @@ public class LeaveBalance {
         this.status = "Pending";
     }
 
-    public LeaveBalance(Long employeeId, String leaveType, LocalDate startDate, LocalDate endDate) {
+    public LeaveBalance(String employeeId, String leaveType, LocalDate startDate, LocalDate endDate) {
         this();
         this.employeeId = employeeId;
         this.leaveType = leaveType;
@@ -64,8 +64,8 @@ public class LeaveBalance {
     // --- GETTERS AND SETTERS ---
     public Long getLeaveId() { return leaveId; }
     public void setLeaveId(Long leaveId) { this.leaveId = leaveId; }
-    public Long getEmployeeId() { return employeeId; }
-    public void setEmployeeId(Long employeeId) { this.employeeId = employeeId; }
+    public String getEmployeeId() { return employeeId; }
+    public void setEmployeeId(String employeeId) { this.employeeId = employeeId; }
     public Employee getEmployee() { return employee; }
     public void setEmployee(Employee employee) { this.employee = employee; }
     public String getLeaveType() { return leaveType; }

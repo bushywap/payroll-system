@@ -14,8 +14,8 @@ public class Leave {
     private Long id;
 
     // Renamed variable to avoid confusion with the String ID, DB column remains the same
-    @Column(name = "employee_id")
-    private Long employeeDbId; 
+    @Column(name = "employee_id", length = 20)
+    private String employeeDbId; 
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "employee_id", insertable = false, updatable = false)
@@ -63,7 +63,7 @@ public class Leave {
         this.status = "Pending";
     }
 
-    public Leave(Long employeeDbId, String leaveType, LocalDate startDate, LocalDate endDate) {
+    public Leave(String employeeDbId, String leaveType, LocalDate startDate, LocalDate endDate) {
         this();
         this.employeeDbId = employeeDbId;
         this.leaveType = leaveType;
@@ -76,8 +76,8 @@ public class Leave {
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     
-    public Long getEmployeeDbId() { return employeeDbId; }
-    public void setEmployeeDbId(Long employeeDbId) { this.employeeDbId = employeeDbId; }
+    public String getEmployeeDbId() { return employeeDbId; }
+    public void setEmployeeDbId(String employeeDbId) { this.employeeDbId = employeeDbId; }
     
     public Employee getEmployee() { return employee; }
     public void setEmployee(Employee employee) { this.employee = employee; }

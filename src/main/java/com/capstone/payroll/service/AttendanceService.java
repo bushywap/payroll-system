@@ -5,8 +5,10 @@ import java.time.LocalTime;
 import java.time.DayOfWeek;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -116,8 +118,9 @@ public class AttendanceService {
         List<AttendanceSummaryDTO> summaries = new ArrayList<>();
         String safeType = (type != null && !type.trim().isEmpty()) ? type : "EMPLOYEE";
 
-        List<Employee> employeesToProcess = "TEACHING".equalsIgnoreCase(safeType) 
+        List<Employee> employeesToProcess = "TEACHING".equalsIgnoreCase(safeType)
             ? employeeRepository.findTeaching() : employeeRepository.findEmployee();
+        employeesToProcess = mergeEacRosterMissingFromDesignationFilter(employeesToProcess);
 
         List<Holidays> allHolidays = holidayRepository.findAll();
         List<Suspension> allSuspensions = suspensionRepository.findAll();
@@ -127,7 +130,7 @@ public class AttendanceService {
             List<TeachingLoad> teachingLoads = new ArrayList<>();
 
             if ("TEACHING".equalsIgnoreCase(safeType)) {
-                teachingLoads = teachingLoadRepository.findByEmployeeEmployeeId(emp.getEmployeeId());
+                teachingLoads = teachingLoadRepository.findByEmployee_Id(emp.getId());
                 
                 teachingLoads.forEach(load -> { 
                     if (load.getDayOfWeek() != null) {
@@ -143,7 +146,7 @@ public class AttendanceService {
                 });
             }
 
-            String empIdStr = emp.getEmployeeId();
+            String empIdStr = emp.getAttendanceKey();
             List<Attendance> records = (start != null && end != null) 
                 ? attendanceRepository.findByEmployeeIdAndDateBetween(empIdStr, start, end)
                 : attendanceRepository.findByEmployeeId(empIdStr);
@@ -155,7 +158,7 @@ public class AttendanceService {
             List<Leave> approvedLeaves = new ArrayList<>();
 
             if (start != null && end != null) {
-                List<Leave> leaves = leaveRepository.findByEmployeeIdAndStartDateBetween(emp.getId(), start, end);
+                List<Leave> leaves = leaveRepository.findByEmployee_IdAndStartDateBetween(emp.getId(), start, end);
                 for (Leave l : leaves) {
                     if ("Approved".equalsIgnoreCase(l.getStatus())) {
                         approvedLeaves.add(l);
@@ -238,7 +241,7 @@ public class AttendanceService {
             }
 
             AttendanceSummaryDTO dto = new AttendanceSummaryDTO();
-            dto.setEmployeeId(emp.getEmployeeId());
+            dto.setEmployeeId(emp.getId());
             dto.setName(emp.getFirstName() + " " + emp.getLastName());
             dto.setDepartment(emp.getDepartment() != null ? emp.getDepartment().getDepartmentName() : "N/A");
             dto.setDesignationName(emp.getDesignation() != null ? emp.getDesignation().getDesignation() : "N/A");
@@ -311,5 +314,21 @@ public class AttendanceService {
         if (!existingRecords.isEmpty()) {
             attendanceRepository.delete(existingRecords.get(0));
         }
+    }
+
+    /** Include HR EAC ids (1-00001..) when designation column is not set yet. */
+    private List<Employee> mergeEacRosterMissingFromDesignationFilter(List<Employee> fromDesignation) {
+        List<Employee> merged = new ArrayList<>(fromDesignation);
+        Set<String> seen = new HashSet<>();
+        for (Employee e : merged) {
+            if (e.getId() != null) seen.add(e.getId());
+        }
+        for (Employee e : employeeRepository.findActiveEacRoster()) {
+            if (e.getId() != null && !seen.contains(e.getId())) {
+                merged.add(e);
+                seen.add(e.getId());
+            }
+        }
+        return merged;
     }
 }

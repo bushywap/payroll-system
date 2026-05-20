@@ -32,7 +32,7 @@ public class LoanController {
     }
 
     @PostMapping("/loans/save")
-    public String saveLoan(@RequestParam Long employeeId,
+    public String saveLoan(@RequestParam String employeeId,
                            @RequestParam String loanType,
                            @RequestParam BigDecimal totalAmount,
                            @RequestParam BigDecimal deductionPerCutoff) {

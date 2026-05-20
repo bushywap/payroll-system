@@ -38,7 +38,7 @@ public class TeachingLoadService {
 
     // --- FIX: Pass the String School ID directly without trying to convert it to a Number ---
     public List<TeachingLoad> findByEmployeeId(String employeeIdStr) {
-        return repository.findByEmployeeEmployeeId(employeeIdStr);
+        return repository.findByEmployee_Id(employeeIdStr);
     }
     
     // Automatically calculates the total hours using Doubles to match the new model!

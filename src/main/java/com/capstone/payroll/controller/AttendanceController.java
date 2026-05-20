@@ -12,6 +12,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import com.capstone.payroll.model.Attendance;
+import com.capstone.payroll.model.TeachingLoad;
 import com.capstone.payroll.model.Department;
 import com.capstone.payroll.model.Holidays;
 import com.capstone.payroll.model.Suspension;
@@ -90,7 +91,7 @@ public class AttendanceController {
 
         List<String> scheduledDays = new ArrayList<>();
         try {
-            teachingLoadRepository.findByEmployeeEmployeeId(employeeId).forEach(load -> { 
+            teachingLoadsForEmployee(employeeId).forEach(load -> { 
                 if (load.getDayOfWeek() != null) {
                     String sched = load.getDayOfWeek().toUpperCase();
                     if (sched.contains("MON")) scheduledDays.add("MONDAY");
@@ -197,5 +198,9 @@ public class AttendanceController {
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Error deleting attendance: " + e.getMessage());
         }
+    }
+
+    private List<TeachingLoad> teachingLoadsForEmployee(String employeeId) {
+        return teachingLoadRepository.findByEmployee_Id(employeeId);
     }
 }
